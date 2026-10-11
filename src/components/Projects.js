@@ -92,18 +92,78 @@ const RAW_PROJECTS = [
   },
   {
     id: 3,
+
+    title: "High School SRS Data Management",
+    category: "Fullstack",
+    description:
+      "Comprehensive student registration system for Jiren Secondary School. Features student profile management, course administration, grade tracking, role-based dashboards, and announcement system for digital transformation.",
+    technologies: ["NEST JS", "MongoDB", "EXPRESS", "CSS3", "JavaScript"],
+    image:
+      "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&h=675&fit=crop&auto=format&q=90",
+    githubRepo:
+      "https://github.com/Wadabera/baby-vaccination-system-by-nest-js-.git",
+    demo: "https://jiren-srs-system.vercel.app/",
+    features: [
+      "Student Registration",
+      "Grade Management",
+      "Role-Based Access",
+      "Announcement System",
+    ],
+    color: "from-emerald-500 to-teal-600",
+    icon: <FaGraduationCap />,
+    location: "Jiren Secondary School, Jimma, Ethiopia",
+  },
+  {
+    id: 4,
+
+    title: "Ethio Business & Diaspora Platform",
+    category: "Backend",
+    description:
+      "Backend platform connecting Ethiopian diaspora with local businesses. Features business listings, intelligent matchmaking algorithms, cross-border collaboration tools, and comprehensive API integration.",
+    technologies: ["NestJS", "MongoDB", "Node.js", "REST API", "Express"],
+    image:
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=675&fit=crop&auto=format&q=90",
+    githubRepo: "https://github.com/Wadabera/busnessman-diaspora-platform.git",
+    demo: "https://ethiodiasphora-frontend-ty5f-five.vercel.app/",
+    features: [
+      "Business Listings",
+      "Matchmaking",
+      "Collaboration Tools",
+      "API Integration",
+    ],
+    color: "from-green-500 to-teal-600",
+    icon: <FaDatabase />,
+    company: "Debo Engineering PLC - Internship",
+  },
+  {
+    id: 5,
+
+    title: "Baby & Mothers Vaccination System",
+    category: "Fullstack",
+    description:
+      "Digital healthcare platform for managing vaccination records. Features automated scheduling, reminder notifications, vaccination history tracking, secure patient data management, and role-based access for healthcare providers.",
+    technologies: ["React", "NestJS", "PostgreSQL", "Chart.js", "SMS API"],
+    image:
+      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&h=675&fit=crop&auto=format&q=90",
+    githubRepo:
+      "https://github.com/Wadabera/baby-and-mothers-vaccination-is-management-systems.git",
+    demo: "https://baby-vaccination-system-by-nest-js.vercel.app/",
+    features: [
+      "Vaccination Scheduling",
+      "Automated Reminders",
+      "Health Records",
+      "Admin Dashboard",
+    ],
+    color: "from-teal-500 to-green-600",
+    icon: <FaHeart />,
+  },
+  {
+    id: 6,
     title: "Chella Reward API",
     category: "Backend",
     description:
       "Modular rewards platform API with comprehensive features. Includes JWT authentication, role-based access control, real-time WebSocket updates, Docker containerization, and automated CI/CD deployment pipelines.",
-    technologies: [
-      "NestJS",
-      "PostgreSQL",
-      "Docker",
-      "WebSocket",
-      "JWT",
-      "CI/CD",
-    ],
+    technologies: ["NestJS", "MongoDB", "Docker", "WebSocket", "JWT", "CI/CD"],
     image:
       "https://image.thum.io/get/width/1200/crop/675/noanimate/https://chella-gram.vercel.app/",
     fallbackImage:
@@ -119,69 +179,6 @@ const RAW_PROJECTS = [
     color: "from-teal-600 to-emerald-700",
     icon: <FaRobot />,
     company: "Ya'i Software PLC - Certificate Project",
-  },
-  {
-    id: 4,
-    title: "Fruit & Vegetable Classifier (ML)",
-    category: "Machine Learning",
-    description:
-      "Real-time image classification achieving 95% accuracy using CNN and transfer learning. Built with Python, TensorFlow, deployed on Streamlit. Features instant classification and comprehensive data visualization.",
-    technologies: [
-      "Python",
-      "TensorFlow",
-      "Keras",
-      "CNN",
-      "Streamlit",
-      "OpenCV",
-    ],
-    image:
-      "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200&h=675&fit=crop&auto=format&q=90",
-    githubRepo:
-      "https://github.com/Wadabera/deep-learning-project-vegetable-fruit-identifier-model_format.git",
-    demo: "https://wadabera-deep-learning-project-vegetable-fruit-ident-app-fzysjo.streamlit.app/",
-    features: [
-      "95% Accuracy",
-      "Real-time Classification",
-      "Transfer Learning",
-      "Interactive UI",
-    ],
-    color: "from-green-500 to-emerald-600",
-    icon: <FaBrain />,
-  },
-  {
-    id: 5,
-    title: "E-Commerce Website (Full-Stack)",
-    category: "Fullstack",
-    description:
-      "Complete e-commerce platform with product catalog, shopping cart, secure checkout flow, and React storefront. Backend handles product management, order processing, and comprehensive user account system.",
-    technologies: ["React", "Express.js", "MongoDB", "Node.js", "REST API"],
-    image:
-      "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=1200&h=675&fit=crop&auto=format&q=90",
-    githubRepo: "https://github.com/Wadabera/e-commerce-app.git",
-    demo: "https://e-commerce-app-client.onrender.com",
-    features: [
-      "Product Catalog",
-      "Shopping Cart",
-      "Checkout System",
-      "User Accounts",
-    ],
-    color: "from-emerald-500 to-green-700",
-    icon: <FaShoppingCart />,
-  },
-  {
-    id: 6,
-    title: "To-Do List App",
-    category: "Frontend",
-    description:
-      "Clean and functional React-based todo list with full CRUD operations. Features local storage persistence, task filtering, priority management, beautiful modern UI design, and smooth animations.",
-    technologies: ["React", "JavaScript", "CSS3", "Local Storage", "Hooks"],
-    image:
-      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=675&fit=crop&auto=format&q=90",
-    githubRepo: "https://github.com/Wadabera/Todolist-by-react.git",
-    demo: "https://to-do-list-wada.netlify.app",
-    features: ["CRUD Operations", "Local Storage", "Task Filters", "Modern UI"],
-    color: "from-green-500 to-emerald-600",
-    icon: <FaListUl />,
   },
   {
     id: 7,
@@ -233,46 +230,38 @@ const RAW_PROJECTS = [
   },
   {
     id: 9,
-    title: "Baby & Mothers Vaccination System",
+    title: "E-Commerce Website (Full-Stack)",
     category: "Fullstack",
     description:
-      "Digital healthcare platform for managing vaccination records. Features automated scheduling, reminder notifications, vaccination history tracking, secure patient data management, and role-based access for healthcare providers.",
-    technologies: ["React", "NestJS", "PostgreSQL", "Chart.js", "SMS API"],
+      "Complete e-commerce platform with product catalog, shopping cart, secure checkout flow, and React storefront. Backend handles product management, order processing, and comprehensive user account system.",
+    technologies: ["React", "Express.js", "MongoDB", "Node.js", "REST API"],
     image:
-      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&h=675&fit=crop&auto=format&q=90",
-    githubRepo:
-      "https://github.com/Wadabera/baby-and-mothers-vaccination-is-management-systems.git",
-    demo: "https://drive.google.com/file/d/1lmdeVVA1YPBG-Hq7fcZ1TSqYPKI3lZnN/view?usp=sharing",
+      "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=1200&h=675&fit=crop&auto=format&q=90",
+    githubRepo: "https://github.com/Wadabera/e-commerce-app.git",
+    demo: "https://e-commerce-app-client.onrender.com",
     features: [
-      "Vaccination Scheduling",
-      "Automated Reminders",
-      "Health Records",
-      "Admin Dashboard",
+      "Product Catalog",
+      "Shopping Cart",
+      "Checkout System",
+      "User Accounts",
     ],
-    color: "from-teal-500 to-green-600",
-    icon: <FaHeart />,
+    color: "from-emerald-500 to-green-700",
+    icon: <FaShoppingCart />,
   },
   {
     id: 10,
-    title: "High School SRS Data Management",
-    category: "Fullstack",
+    title: "To-Do List App",
+    category: "Frontend",
     description:
-      "Comprehensive student registration system for Jiren Secondary School. Features student profile management, course administration, grade tracking, role-based dashboards, and announcement system for digital transformation.",
-    technologies: ["PHP", "MySQL", "HTML5", "CSS3", "JavaScript"],
+      "Clean and functional React-based todo list with full CRUD operations. Features local storage persistence, task filtering, priority management, beautiful modern UI design, and smooth animations.",
+    technologies: ["React", "JavaScript", "CSS3", "Local Storage", "Hooks"],
     image:
-      "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&h=675&fit=crop&auto=format&q=90",
-    githubRepo:
-      "https://github.com/Wadabera/high-school-srs-data-management-system.git",
-    demo: "https://drive.google.com/file/d/1ai499hZCObp7JLOfGVaumk8m3VGxlta_/view?usp=sharing",
-    features: [
-      "Student Registration",
-      "Grade Management",
-      "Role-Based Access",
-      "Announcement System",
-    ],
-    color: "from-emerald-500 to-teal-600",
-    icon: <FaGraduationCap />,
-    location: "Jiren Secondary School, Jimma, Ethiopia",
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=675&fit=crop&auto=format&q=90",
+    githubRepo: "https://github.com/Wadabera/Todolist-by-react.git",
+    demo: "https://to-do-list-wada.netlify.app",
+    features: ["CRUD Operations", "Local Storage", "Task Filters", "Modern UI"],
+    color: "from-green-500 to-emerald-600",
+    icon: <FaListUl />,
   },
   {
     id: 11,
@@ -305,24 +294,31 @@ const RAW_PROJECTS = [
   },
   {
     id: 12,
-    title: "Ethio Business & Diaspora Platform",
-    category: "Backend",
+    title: "Fruit & Vegetable Classifier (ML)",
+    category: "Machine Learning",
     description:
-      "Backend platform connecting Ethiopian diaspora with local businesses. Features business listings, intelligent matchmaking algorithms, cross-border collaboration tools, and comprehensive API integration.",
-    technologies: ["NestJS", "MongoDB", "Node.js", "REST API", "Express"],
-    image:
-      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=675&fit=crop&auto=format&q=90",
-    githubRepo: "https://github.com/Wadabera/busnessman-diaspora-platform.git",
-    demo: "https://busnessman-diaspora-platform-7.onrender.com",
-    features: [
-      "Business Listings",
-      "Matchmaking",
-      "Collaboration Tools",
-      "API Integration",
+      "Real-time image classification achieving 95% accuracy using CNN and transfer learning. Built with Python, TensorFlow, deployed on Streamlit. Features instant classification and comprehensive data visualization.",
+    technologies: [
+      "Python",
+      "TensorFlow",
+      "Keras",
+      "CNN",
+      "Streamlit",
+      "OpenCV",
     ],
-    color: "from-green-500 to-teal-600",
-    icon: <FaDatabase />,
-    company: "Debo Engineering PLC - Internship",
+    image:
+      "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200&h=675&fit=crop&auto=format&q=90",
+    githubRepo:
+      "https://github.com/Wadabera/deep-learning-project-vegetable-fruit-identifier-model_format.git",
+    demo: "https://wadabera-deep-learning-project-vegetable-fruit-ident-app-fzysjo.streamlit.app/",
+    features: [
+      "95% Accuracy",
+      "Real-time Classification",
+      "Transfer Learning",
+      "Interactive UI",
+    ],
+    color: "from-green-500 to-emerald-600",
+    icon: <FaBrain />,
   },
   {
     id: 13,
