@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaHome,
@@ -17,23 +17,36 @@ const NAV_ITEMS = [
 const MobileBottomNav = () => {
   const [active, setActive] = useState("home");
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
 
   // Hide/show nav based on scroll direction
   useEffect(() => {
+    let frame = null;
+    lastScrollY.current = window.scrollY;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-      setLastScrollY(currentScrollY);
+      if (frame !== null) return;
+      frame = window.requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const distance = currentScrollY - lastScrollY.current;
+
+        if (currentScrollY <= 100 || distance < -8) {
+          setIsVisible(true);
+        } else if (distance > 8) {
+          setIsVisible(false);
+        }
+
+        lastScrollY.current = currentScrollY;
+        frame = null;
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   // Update active section based on scroll position
   useEffect(() => {

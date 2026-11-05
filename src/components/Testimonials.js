@@ -314,11 +314,26 @@ const Testimonials = () => {
                         }}
                         transition={{ duration: 3, repeat: Infinity }}
                       />
+                      <span
+                        aria-hidden="true"
+                        className="absolute inset-0 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-emerald-700 text-xl font-bold text-white"
+                      >
+                        {t.name
+                          .split(/\s+/)
+                          .slice(0, 2)
+                          .map((part) => part[0])
+                          .join("")}
+                      </span>
                       <img
                         src={t.image}
                         alt={t.name}
                         loading="lazy"
+                        width={80}
+                        height={80}
                         className="relative h-20 w-20 rounded-full border-3 border-white/20 object-cover shadow-xl"
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
                       />
                       <motion.div
                         className="absolute -bottom-2 -right-2 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full p-2"

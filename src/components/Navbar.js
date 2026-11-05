@@ -50,6 +50,17 @@ const Navbar = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [open]);
+
   const goTo = useCallback((id) => {
     setOpen(false);
     const el = document.getElementById(id);
@@ -195,7 +206,9 @@ const Navbar = () => {
 
           <motion.button
             onClick={() => setOpen((o) => !o)}
-            aria-label="Toggle menu"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            aria-controls="mobile-navigation"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-line/50 bg-card/50 text-ink lg:hidden"
@@ -224,6 +237,7 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
             className="overflow-hidden lg:hidden"
+            id="mobile-navigation"
           >
             <div className="container-custom pb-4 sm:pb-6 pt-3 sm:pt-4">
               <motion.ul

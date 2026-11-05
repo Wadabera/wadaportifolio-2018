@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   motion,
   useMotionValue,
+  useMotionTemplate,
   useSpring,
   useTransform,
   useScroll,
@@ -34,6 +35,15 @@ const TITLES = [
   "Digital Experience Creator",
 ];
 
+const HERO_PARTICLES = Array.from({ length: 15 }, (_, index) => ({
+  left: `${(index * 37) % 100}%`,
+  top: `${(index * 53) % 100}%`,
+  size: 2 + (index % 3),
+  x: ((index * 17) % 101) - 50,
+  y: ((index * 29) % 101) - 50,
+  duration: 4 + (index % 5),
+}));
+
 const HeroStat = ({ end, suffix, label }) => {
   const [ref, value] = useCountUp(end);
   return (
@@ -51,8 +61,13 @@ const Hero = () => {
   const [text, setText] = useState("");
   const [idx, setIdx] = useState(0);
   const [deleting, setDeleting] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef(null);
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const gridOffsetY = useTransform(pointerY, [0, 1], [0, 20]);
+  const gridTransform = useMotionTemplate`perspective(1000px) rotateX(60deg) translateY(${gridOffsetY}px)`;
+  const glowX = useTransform(pointerX, [0, 1], [-100, 100]);
+  const glowY = useTransform(pointerY, [0, 1], [-100, 100]);
 
   // Typewriter with enhanced animation
   useEffect(() => {
@@ -78,21 +93,36 @@ const Hero = () => {
     return () => clearTimeout(timeout);
   }, [text, idx, deleting]);
 
-  // Enhanced mouse tracking for interactive effects
+  // Keep pointer effects on motion values so pointer movement never rerenders the hero.
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (heroRef.current) {
-        const rect = heroRef.current.getBoundingClientRect();
-        setMousePosition({
-          x: (e.clientX - rect.left) / rect.width,
-          y: (e.clientY - rect.top) / rect.height,
-        });
-      }
+    if (
+      !window.matchMedia("(pointer: fine)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return undefined;
+    }
+
+    const hero = heroRef.current;
+    if (!hero) return undefined;
+
+    const handlePointerMove = (event) => {
+      const rect = hero.getBoundingClientRect();
+      pointerX.set(Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)));
+      pointerY.set(Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)));
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+    const resetPointer = () => {
+      pointerX.set(0);
+      pointerY.set(0);
+    };
+
+    hero.addEventListener("pointermove", handlePointerMove, { passive: true });
+    hero.addEventListener("pointerleave", resetPointer);
+    return () => {
+      hero.removeEventListener("pointermove", handlePointerMove);
+      hero.removeEventListener("pointerleave", resetPointer);
+    };
+  }, [pointerX, pointerY]);
 
   // Scroll-based animations
   const { scrollYProgress } = useScroll({
@@ -165,29 +195,29 @@ const Hero = () => {
               linear-gradient(90deg, rgba(16, 185, 129, 0.1) 1px, transparent 1px)
             `,
             backgroundSize: '50px 50px',
-            transform: `perspective(1000px) rotateX(60deg) translateY(${mousePosition.y * 20}px)`,
+            transform: gridTransform,
             transition: 'transform 0.3s ease-out'
           }}
         />
         
         {/* Enhanced Floating Particles with Mouse Interaction */}
-        {[...Array(15)].map((_, i) => (
+        {HERO_PARTICLES.map((particle, i) => (
           <motion.div
             key={i}
             className="particle absolute rounded-full bg-gradient-to-r from-brand to-emerald-400 hidden sm:block"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              width: `${2 + Math.random() * 4}px`,
-              height: `${2 + Math.random() * 4}px`,
+              left: particle.left,
+              top: particle.top,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
             }}
             animate={{
-              x: [0, (Math.random() - 0.5) * 100],
-              y: [0, (Math.random() - 0.5) * 100],
+              x: [0, particle.x],
+              y: [0, particle.y],
               opacity: [0.2, 0.8, 0.2],
             }}
             transition={{
-              duration: 4 + Math.random() * 4,
+              duration: particle.duration,
               repeat: Infinity,
               ease: "easeInOut"
             }}
@@ -238,15 +268,7 @@ const Hero = () => {
         {/* Mouse-following Glow Effect */}
         <motion.div
           className="absolute w-96 h-96 bg-brand/20 rounded-full blur-3xl pointer-events-none"
-          animate={{
-            x: mousePosition.x * 100,
-            y: mousePosition.y * 100,
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 100,
-            damping: 25
-          }}
+          style={{ x: glowX, y: glowY }}
         />
       </div>
       
@@ -543,8 +565,9 @@ const Hero = () => {
                   alt="Wada Abera, Full-Stack Developer"
                   width={448}
                   height={448}
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
+                  fetchpriority="high"
                   className="h-full w-full object-cover"
                 />
                 {/* Enhanced shine effect overlay */}

@@ -111,7 +111,7 @@ const Certificates = () => {
                     src={c.image}
                     alt={c.title}
                     loading="lazy"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-[1.02]"
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                   <span className="absolute left-3 top-3 rounded-lg bg-bg/70 px-2 py-1 font-mono text-xs text-brand-300 backdrop-blur">
@@ -202,6 +202,7 @@ const Certificates = () => {
                   src={selected.image}
                   alt={selected.title}
                   className="max-h-[55vh] w-full object-contain"
+                  onError={(e) => (e.currentTarget.style.display = "none")}
                 />
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
