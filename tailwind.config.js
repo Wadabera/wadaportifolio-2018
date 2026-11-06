@@ -1,152 +1,254 @@
 /** @type {import('tailwindcss').Config} */
+
+// Helper: build a color that reads from a CSS variable so the same Tailwind
+// class works in both dark and light themes. The variable holds an "R G B"
+// triplet, letting us still use Tailwind's /opacity modifiers.
+const withVar = (name) => `rgb(var(${name}) / <alpha-value>)`;
+
 module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-    "./public/index.html"
-  ],
-  darkMode: 'class',
+  content: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e'
+        // ---- Brand: a single, disciplined emerald accent ----
+        brand: {
+          50: "#ecfdf5",
+          100: "#d1fae5",
+          200: "#a7f3d0",
+          300: "#6ee7b7",
+          400: "#34d399",
+          500: "#10b981",
+          600: "#059669",
+          700: "#047857",
+          800: "#065f46",
+          900: "#064e3b",
+          DEFAULT: "#10b981",
+          glow: "#34d399",
         },
-        secondary: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a'
+
+        // ---- Theme-aware surface tokens (driven by CSS vars in index.css) ----
+        bg: withVar("--c-bg"),
+        surface: withVar("--c-surface"),
+        card: withVar("--c-card"),
+        line: withVar("--c-border"),
+        ink: withVar("--c-text"),
+        muted: withVar("--c-muted"),
+
+        // ---- Backwards-compatible aliases so legacy class names keep working
+        //      while sections are migrated. All map to the new token set. ----
+        magazine: {
+          bg: withVar("--c-bg"),
+          card: withVar("--c-card"),
+          border: withVar("--c-border"),
+          text: withVar("--c-text"),
+          muted: withVar("--c-muted"),
         },
         accent: {
-          50: '#fdf4ff',
-          100: '#fae8ff',
-          200: '#f5d0fe',
-          300: '#f0abfc',
-          400: '#e879f9',
-          500: '#d946ef',
-          600: '#c026d3',
-          700: '#a21caf',
-          800: '#86198f',
-          900: '#701a75',
-          yellow: '#FFD700',
-          orange: '#FF6B35',
-          pink: '#FF1B8D',
-          purple: '#8B5CF6',
-          blue: '#3B82F6',
-          green: '#10B981',
-          red: '#EF4444'
+          // legacy accent.* now all collapse onto the brand emerald so old
+          // markup renders on-palette until each component is rewritten.
+          yellow: "#10b981",
+          orange: "#059669",
+          pink: "#34d399",
+          purple: "#10b981",
+          blue: "#34d399",
+          green: "#10b981",
+          red: "#ef4444",
         },
-        success: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d'
-        },
-        // Magazine-style dark theme
-        magazine: {
-          bg: '#0A0E1A',
-          card: '#1A1F2E',
-          border: '#2D3748',
-          text: '#E2E8F0',
-          muted: '#94A3B8'
-        }
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'heading': ['Poppins', 'system-ui', 'sans-serif'],
-        'mono': ['JetBrains Mono', 'monospace']
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Sora", "Poppins", "system-ui", "sans-serif"],
+        heading: ["Sora", "Poppins", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
       animation: {
-        'fadeInUp': 'fadeInUp 0.8s ease-out',
-        'slideInLeft': 'slideInLeft 0.8s ease-out',
-        'slideInRight': 'slideInRight 0.8s ease-out',
-        'float': 'float 6s ease-in-out infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
-        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'bounce-slow': 'bounce 3s infinite',
-        'spin-slow': 'spin 8s linear infinite',
-        'gradient': 'gradient 15s ease infinite',
-        'shimmer': 'shimmer 2.5s linear infinite',
-        'typewriter': 'typewriter 4s steps(40) infinite'
+        float: "float 8s ease-in-out infinite",
+        "float-slow": "float 12s ease-in-out infinite",
+        "float-3d": "float-3d 6s ease-in-out infinite",
+        glow: "glow 3s ease-in-out infinite alternate",
+        "neon-glow": "neon-glow 3s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        gradient: "gradient 12s ease infinite",
+        shimmer: "shimmer 2.5s linear infinite",
+        "spin-slow": "spin 14s linear infinite",
+        "rotate-3d": "rotate-3d 20s ease-in-out infinite",
+        aurora: "aurora 18s ease-in-out infinite",
+        blink: "blink 1s step-end infinite",
+        "fade-up": "fadeUp 0.7s ease-out both",
+        morph: "morph 8s ease-in-out infinite",
+        shine: "shine 1.5s ease-in-out",
+        holographic: "holographic 8s ease infinite",
+        "text-glow": "text-glow 2s ease-in-out infinite",
+        "cyber-glitch": "cyber-glitch 0.3s ease-in-out",
+        "particle-float": "particle-float 4s ease-in-out infinite",
       },
       keyframes: {
-        fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(40px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' }
-        },
-        slideInLeft: {
-          '0%': { opacity: '0', transform: 'translateX(-50px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' }
-        },
-        slideInRight: {
-          '0%': { opacity: '0', transform: 'translateX(50px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' }
-        },
         float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-20px)' }
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-18px)" },
+        },
+        "float-3d": {
+          "0%, 100%": {
+            transform: "translateY(0) translateZ(0) rotateX(0) rotateY(0)",
+          },
+          "25%": {
+            transform: "translateY(-20px) translateZ(30px) rotateX(5deg) rotateY(5deg)",
+          },
+          "50%": {
+            transform: "translateY(-10px) translateZ(50px) rotateX(-3deg) rotateY(-3deg)",
+          },
+          "75%": {
+            transform: "translateY(-25px) translateZ(40px) rotateX(4deg) rotateY(-4deg)",
+          },
         },
         glow: {
-          '0%': { boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)' },
-          '100%': { boxShadow: '0 0 40px rgba(255, 215, 0, 0.6)' }
+          "0%": { boxShadow: "0 0 20px rgba(16,185,129,0.25)" },
+          "100%": { boxShadow: "0 0 45px rgba(16,185,129,0.55)" },
+        },
+        "neon-glow": {
+          "0%, 100%": {
+            boxShadow:
+              "0 0 5px rgba(16, 185, 129, 0.5), 0 0 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.3), 0 0 80px rgba(16, 185, 129, 0.2)",
+          },
+          "50%": {
+            boxShadow:
+              "0 0 10px rgba(16, 185, 129, 0.8), 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.5), 0 0 100px rgba(16, 185, 129, 0.4)",
+          },
+        },
+        "pulse-glow": {
+          "0%, 100%": {
+            filter:
+              "drop-shadow(0 0 10px rgba(16, 185, 129, 0.5)) drop-shadow(0 0 20px rgba(16, 185, 129, 0.3))",
+          },
+          "50%": {
+            filter:
+              "drop-shadow(0 0 20px rgba(16, 185, 129, 0.8)) drop-shadow(0 0 40px rgba(16, 185, 129, 0.5))",
+          },
         },
         gradient: {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' }
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
         },
         shimmer: {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' }
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
         },
-        typewriter: {
-          '0%, 100%': { width: '0' },
-          '50%': { width: '100%' }
-        }
+        "rotate-3d": {
+          "0%": {
+            transform: "perspective(1000px) rotateY(0deg) rotateX(0deg)",
+          },
+          "25%": {
+            transform: "perspective(1000px) rotateY(5deg) rotateX(5deg)",
+          },
+          "50%": {
+            transform: "perspective(1000px) rotateY(0deg) rotateX(10deg)",
+          },
+          "75%": {
+            transform: "perspective(1000px) rotateY(-5deg) rotateX(5deg)",
+          },
+          "100%": {
+            transform: "perspective(1000px) rotateY(0deg) rotateX(0deg)",
+          },
+        },
+        aurora: {
+          "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+          "33%": { transform: "translate(6%, -4%) scale(1.1)" },
+          "66%": { transform: "translate(-5%, 5%) scale(0.95)" },
+        },
+        blink: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0" },
+        },
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(24px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        morph: {
+          "0%, 100%": {
+            borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
+          },
+          "50%": {
+            borderRadius: "30% 60% 70% 40% / 50% 60% 30% 60%",
+          },
+        },
+        shine: {
+          "0%": {
+            transform: "translateX(-100%) translateY(-100%) rotate(45deg)",
+          },
+          "100%": {
+            transform: "translateX(200%) translateY(200%) rotate(45deg)",
+          },
+        },
+        holographic: {
+          "0%, 100%": {
+            backgroundPosition: "0% 50%",
+            filter: "hue-rotate(0deg)",
+          },
+          "50%": {
+            backgroundPosition: "100% 50%",
+            filter: "hue-rotate(20deg)",
+          },
+        },
+        "text-glow": {
+          "0%, 100%": {
+            textShadow:
+              "0 0 10px rgba(16, 185, 129, 0.5), 0 0 20px rgba(16, 185, 129, 0.3), 0 0 30px rgba(16, 185, 129, 0.2)",
+          },
+          "50%": {
+            textShadow:
+              "0 0 20px rgba(16, 185, 129, 0.8), 0 0 40px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.4)",
+          },
+        },
+        "cyber-glitch": {
+          "0%, 90%, 100%": {
+            transform: "translate(0)",
+            filter: "hue-rotate(0deg)",
+          },
+          "92%": {
+            transform: "translate(-2px, 2px)",
+            filter: "hue-rotate(90deg)",
+          },
+          "94%": {
+            transform: "translate(2px, -2px)",
+            filter: "hue-rotate(-90deg)",
+          },
+          "96%": {
+            transform: "translate(-2px, -2px)",
+            filter: "hue-rotate(45deg)",
+          },
+        },
+        "particle-float": {
+          "0%, 100%": {
+            transform: "translate(0, 0)",
+            opacity: "0",
+          },
+          "10%": {
+            opacity: "1",
+          },
+          "90%": {
+            opacity: "1",
+          },
+          "100%": {
+            transform: "translate(100px, -100px)",
+            opacity: "0",
+          },
+        },
+      },
+      backgroundSize: {
+        "300%": "300% 300%",
       },
       backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'mesh-gradient': 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
-        'hero-pattern': "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%239C92AC\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"4\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
-      },
-      backdropBlur: {
-        xs: '2px',
+        "grid-faint":
+          "linear-gradient(to right, rgba(148,163,184,0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.07) 1px, transparent 1px)",
       },
       boxShadow: {
-        'glow': '0 0 20px rgba(14, 165, 233, 0.3)',
-        'glow-lg': '0 0 40px rgba(14, 165, 233, 0.4)',
-        'glow-yellow': '0 0 20px rgba(255, 215, 0, 0.3)',
-        'glow-yellow-lg': '0 0 40px rgba(255, 215, 0, 0.4)',
-        'glow-orange': '0 0 20px rgba(255, 107, 53, 0.3)',
-        'glow-pink': '0 0 20px rgba(255, 107, 179, 0.3)',
-        'inner-glow': 'inset 0 0 20px rgba(14, 165, 233, 0.2)',
-        'neon': '0 0 5px theme(colors.primary.400), 0 0 20px theme(colors.primary.400), 0 0 35px theme(colors.primary.400)',
-        'neon-yellow': '0 0 5px theme(colors.accent.yellow), 0 0 20px theme(colors.accent.yellow), 0 0 35px theme(colors.accent.yellow)',
-        'neon-orange': '0 0 5px theme(colors.accent.orange), 0 0 20px theme(colors.accent.orange), 0 0 35px theme(colors.accent.orange)',
-        'neon-pink': '0 0 5px theme(colors.accent.pink), 0 0 20px theme(colors.accent.pink), 0 0 35px theme(colors.accent.pink)'
-      }
+        emerald: "0 0 24px rgba(16,185,129,0.30)",
+        "emerald-lg": "0 0 60px rgba(16,185,129,0.45)",
+        soft: "0 10px 40px rgba(0,0,0,0.25)",
+        "soft-lg": "0 24px 70px rgba(0,0,0,0.40)",
+      },
     },
   },
   plugins: [],
-}
+};

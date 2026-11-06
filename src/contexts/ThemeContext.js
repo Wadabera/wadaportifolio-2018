@@ -1,48 +1,43 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const ThemeContext = createContext();
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
   return context;
 };
 
 export const ThemeProvider = ({ children }) => {
+  // Dark is the default brand experience. Persist explicit user choice.
   const [isDark, setIsDark] = useState(() => {
-    // Check localStorage first, then system preference
-    const saved = localStorage.getItem('theme');
-    if (saved) {
-      return saved === 'dark';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const saved =
+      typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    if (saved) return saved === "dark";
+    return true; // default dark
   });
 
   useEffect(() => {
-    const root = window.document.documentElement;
+    // Theme is scoped to <body> (class "light") so it never collides with
+    // AccessibilityProvider, which writes className on <html>.
+    const body = document.body;
     if (isDark) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      body.classList.remove("light");
+      localStorage.setItem("theme", "dark");
     } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+      body.classList.add("light");
+      localStorage.setItem("theme", "light");
     }
   }, [isDark]);
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
-
-  const value = {
-    isDark,
-    toggleTheme,
-    theme: isDark ? 'dark' : 'light'
-  };
+  const toggleTheme = () => setIsDark((d) => !d);
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider
+      value={{ isDark, toggleTheme, theme: isDark ? "dark" : "light" }}
+    >
       {children}
     </ThemeContext.Provider>
   );

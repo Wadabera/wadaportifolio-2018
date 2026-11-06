@@ -1,381 +1,461 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import {
   FaQuoteLeft,
   FaStar,
   FaChevronLeft,
   FaChevronRight,
-  FaLinkedin,
-  FaGraduationCap,
-  FaCode,
-  FaUsers,
-  FaPlay,
-  FaPause,
+  FaCheckCircle,
+  FaBuilding,
+  FaAward,
+  FaTrophy,
+  FaCrown,
+  FaFire,
+  FaGem,
 } from "react-icons/fa";
 import batiImg from "../images/baatii2.jpg";
 import falmiImg from "../images/falmi.jpg";
 import boazImg from "../images/boaz.jpg";
+import dawwitImg from "../images/DAWWIT.jpg";
+import jarmiaImg from "../images/JARMIA.jpg";
+import Reveal from "./ui/Reveal";
+
+const TESTIMONIALS = [
+  {
+    id: 1,
+    name: "Enginer Dawwit TESFAYE",
+    role: "Founder of Andropia PLC Technology",
+    image: dawwitImg,
+    rating: 5,
+    text: " Wada demonstrated outstanding technical expertise during his internship at Andropia PLC. His backend development skills, problem-solving abilities, and commitment to excellence made him a valuable addition to our team.",
+    badge: "Founder",
+    badgeIcon: <FaBuilding />,
+    badgeColor: "from-teal-500 to-emerald-500",
+    featured: true,
+  },
+  {
+    id: 2,
+    name: "Mr Jarmia BaySA",
+    role: "CEO and Founder of Debo Engineering PLC",
+    image: jarmiaImg,
+    rating: 5,
+    text: "He commented me as committed and good problem solver, fixer. Wada's dedication and innovative approach to backend development were impressive during his internship. His ability to tackle complex challenges and deliver robust solutions speaks volumes about his potential as a software engineer.",
+    badge: "CEO",
+    badgeIcon: <FaAward />,
+    badgeColor: "from-teal-500 to-emerald-500",
+    featured: true,
+  },
+  {
+    id: 3,
+    name: "Baatii Shilashi",
+    role: "Founder & CEO, Yai Software",
+    image: batiImg,
+    rating: 5,
+    text: "Wada is an exceptional developer with outstanding problem-solving abilities. He consistently delivers high-quality projects and shows strong leadership in team collaborations.",
+    badge: "CEO",
+    badgeIcon: <FaTrophy />,
+    badgeColor: "from-emerald-500 to-teal-500",
+  },
+  {
+    id: 4,
+    name: "Falmi Tasfaye",
+    role: "Software Engineering Student & Teammate",
+    image: falmiImg,
+    rating: 5,
+    text: "Working with Wada on our web project was fantastic. His expertise in React and NestJS, plus his grasp of complex requirements, made him an invaluable team member. Highly recommended!",
+    badge: "Team Lead",
+    badgeIcon: <FaStar />,
+    badgeColor: "from-teal-500 to-emerald-500",
+  },
+  {
+    id: 5,
+    name: "Boaz Tullu",
+    role: "AI Engineer & Lecturer",
+    image: boazImg,
+    rating: 5,
+    text: "Wada writes clean, maintainable code with a deep understanding of both frontend and backend. His machine learning work shows real versatility and a passion for emerging tech.",
+    badge: "Expert",
+    badgeIcon: <FaAward />,
+    badgeColor: "from-teal-500 to-emerald-500",
+  },
+];
 
 const Testimonials = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [index, setIndex] = useState(0);
+  const [auto, setAuto] = useState(true);
+  const sectionRef = React.useRef(null);
 
-  const testimonials = [
-    {
-      id: 1,
-      name: "Baatii Shilashi",
-      role: "Software Engineer  and junior fulstack developer and ceo founder",
-      company: "Yai software Campany founder",
-      image: batiImg,
-      rating: 5,
-      text: "Wada is an exceptional student with outstanding problem-solving abilities. His dedication to learning and applying software engineering principles is remarkable. He consistently delivers high-quality projects and demonstrates strong leadership skills in team collaborations.",
-      icon: <FaGraduationCap />,
-      color: "from-accent-yellow to-accent-orange",
-      verified: true,
-    },
-    {
-      id: 2,
-      name: "Falmi  Tasfaye",
-      role: "Senior Full-Stack Developer",
-      company: "BSC software Engineering Student and Team meamber",
-      image: falmiImg,
-      rating: 5,
-      text: "Working with Wada on our web development project was a fantastic experience. His technical expertise in React and NestJS, combined with his ability to understand complex requirements, made him an invaluable team member. Highly recommended!",
-      icon: <FaCode />,
-      color: "from-accent-blue to-accent-purple",
-      verified: true,
-    },
-    {
-      id: 3,
-      name: "Boaz TUllu",
-      role: " Project Manager and AI Engineer ",
-      company: "Leacturer at University of Filorida, America",
-      image: boazImg,
-      rating: 5,
-      text: "Wada's approach to full-stack development is impressive. He writes clean, maintainable code and has a deep understanding of both frontend and backend technologies. His machine learning projects showcase his versatility and passion for emerging technologies.",
-      icon: <FaLinkedin />,
-      color: "from-accent-pink to-accent-red",
-      verified: true,
-    }
-    
-  ];
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+  
+  const y = useTransform(scrollYProgress, [0, 1], [30, -30]);
 
-  const nextTestimonial = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === testimonials.length - 1 ? 0 : prevIndex + 1
-    );
-  };
+  const next = useCallback(
+    () => setIndex((i) => (i + 1) % TESTIMONIALS.length),
+    []
+  );
+  const prev = () =>
+    setIndex((i) => (i - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
 
-  const prevTestimonial = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? testimonials.length - 1 : prevIndex - 1
-    );
-  };
-
-  const toggleAutoPlay = () => {
-    setIsAutoPlaying(!isAutoPlaying);
-  };
-
-  // Auto-slide functionality
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!auto) return;
+    const id = setInterval(next, 6000);
+    return () => clearInterval(id);
+  }, [auto, next]);
 
-    const interval = setInterval(nextTestimonial, 4000);
-    return () => clearInterval(interval);
-  }, [isAutoPlaying]);
-
-  const renderStars = (rating) => {
-    return [...Array(5)].map((_, index) => (
-      <FaStar
-        key={index}
-        className={`${
-          index < rating ? "text-accent-yellow" : "text-magazine-border"
-        } transition-colors duration-300 hover:scale-110`}
-      />
-    ));
-  };
-
-  const getVisibleTestimonials = () => {
-    const visible = [];
-    for (let i = 0; i < 3; i++) {
-      const index = (currentIndex + i) % testimonials.length;
-      visible.push({ ...testimonials[index], position: i });
-    }
-    return visible;
-  };
+  const t = TESTIMONIALS[index];
 
   return (
-    <section
-      id="testimonials"
-      className="section-padding bg-magazine-bg relative overflow-hidden"
-    >
-      {/* Enhanced Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-accent-yellow/15 to-accent-orange/15 rounded-full blur-3xl animate-pulse"></div>
-        <div
-          className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-accent-pink/15 to-accent-purple/15 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
-        ></div>
-        <div
-          className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-r from-accent-blue/10 to-accent-green/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "4s" }}
-        ></div>
-        <div className="absolute inset-0 bg-hero-pattern opacity-5"></div>
-      </div>
-
-      <div className="container-custom relative z-10">
-        {/* Enhanced Section Header */}
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-3 bg-accent-yellow/10 border border-accent-yellow/30 rounded-full px-6 py-3 text-accent-yellow text-sm font-bold backdrop-blur-sm mb-6 animate-pulse">
-            <div className="w-3 h-3 bg-accent-yellow rounded-full animate-ping"></div>
-            Client Testimonials
-          </div>
-          <h2 className="text-5xl lg:text-7xl font-black text-magazine-text mb-6 font-display leading-tight">
-            What People{" "}
-            <span className="bg-gradient-to-r from-accent-yellow via-accent-orange to-accent-pink bg-clip-text text-transparent animate-gradient bg-300%">
-              Say
-            </span>
-          </h2>
-          <p className="text-xl lg:text-2xl text-magazine-muted max-w-4xl mx-auto leading-relaxed mb-8">
-            Feedback from professors, colleagues, and collaborators I've worked
-            with
-          </p>
-
-          {/* Auto-play Control */}
-          <button
-            onClick={toggleAutoPlay}
-            className="inline-flex items-center gap-2 bg-magazine-card border border-magazine-border rounded-full px-4 py-2 text-magazine-muted hover:text-accent-yellow transition-colors duration-300"
-          >
-            {isAutoPlaying ? <FaPause size={12} /> : <FaPlay size={12} />}
-            <span className="text-sm font-medium">
-              {isAutoPlaying ? "Pause" : "Play"} Auto-scroll
-            </span>
-          </button>
-        </div>
-
-        {/* Enhanced Testimonials Carousel */}
-        <div className="relative max-w-7xl mx-auto mb-16">
-          <div
-            className="bg-magazine-card border border-magazine-border rounded-3xl p-8 lg:p-16 relative overflow-hidden group hover:shadow-2xl transition-all duration-500"
-            onMouseEnter={() => setIsAutoPlaying(false)}
-            onMouseLeave={() => setIsAutoPlaying(true)}
-          >
-            {/* Enhanced Background Quote Icon */}
-            <div className="absolute top-8 left-8 text-9xl text-accent-yellow/20 animate-pulse">
-              <FaQuoteLeft />
-            </div>
-
-            {/* Enhanced Navigation Arrows */}
-            <button
-              onClick={prevTestimonial}
-              className="absolute left-6 top-1/2 transform -translate-y-1/2 w-16 h-16 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-full shadow-2xl flex items-center justify-center text-magazine-bg hover:scale-125 transition-all duration-300 z-20 group hover:rotate-12"
-            >
-              <FaChevronLeft size={20} />
-            </button>
-
-            <button
-              onClick={nextTestimonial}
-              className="absolute right-6 top-1/2 transform -translate-y-1/2 w-16 h-16 bg-gradient-to-r from-accent-orange to-accent-pink rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-125 transition-all duration-300 z-20 group hover:rotate-12"
-            >
-              <FaChevronRight size={20} />
-            </button>
-
-            {/* Enhanced Testimonials Display */}
-            <div className="grid lg:grid-cols-3 gap-8 relative z-10 px-8">
-              {getVisibleTestimonials().map((testimonial, index) => (
-                <div
-                  key={testimonial.id}
-                  className={`text-center transition-all duration-700 ${
-                    index === 1
-                      ? "lg:scale-110 lg:z-30 transform lg:-translate-y-4"
-                      : "lg:scale-95 lg:opacity-70 hover:opacity-90"
-                  }`}
-                >
-                  {/* Enhanced Profile Image with Multiple Borders */}
-                  <div className="relative mb-8 mx-auto w-28 h-28 lg:w-36 lg:h-36">
-                    {/* Outer Rotating Border */}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-r ${testimonial.color} rounded-full animate-spin-slow p-1`}
-                    >
-                      <div className="w-full h-full bg-magazine-bg rounded-full"></div>
-                    </div>
-
-                    {/* Inner Gradient Border */}
-                    <div
-                      className={`absolute inset-2 bg-gradient-to-r ${testimonial.color} rounded-full p-1 animate-pulse`}
-                    >
-                      <div className="w-full h-full bg-magazine-bg rounded-full"></div>
-                    </div>
-
-                    {/* Profile Image */}
-                    <div className="absolute inset-4 rounded-full overflow-hidden">
-                      <img
-                        src={testimonial.image}
-                        alt={testimonial.name}
-                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                        onError={(e) => {
-                          e.target.src = "/images/placeholder-avatar.png";
-                        }}
-                      />
-                    </div>
-
-                    {/* Enhanced Role Icon with Verification */}
-                    <div
-                      className={`absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r ${testimonial.color} rounded-full flex items-center justify-center text-white shadow-lg border-2 border-magazine-bg`}
-                    >
-                      {testimonial.icon}
-                    </div>
-
-                    {/* Verification Badge */}
-                    {testimonial.verified && (
-                      <div className="absolute -top-2 -left-2 w-8 h-8 bg-accent-green rounded-full flex items-center justify-center text-white text-xs border-2 border-magazine-bg">
-                        ✓
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Enhanced Rating */}
-                  <div className="flex justify-center space-x-1 mb-6">
-                    {renderStars(testimonial.rating)}
-                  </div>
-
-                  {/* Enhanced Testimonial Text */}
-                  <blockquote
-                    className={`text-magazine-muted mb-8 leading-relaxed italic relative ${
-                      index === 1
-                        ? "text-lg lg:text-xl"
-                        : "text-base lg:text-lg"
-                    }`}
-                  >
-                    <span className="text-accent-yellow text-2xl absolute -top-2 -left-2">
-                      "
-                    </span>
-                    {testimonial.text}
-                    <span className="text-accent-yellow text-2xl absolute -bottom-4 -right-2">
-                      "
-                    </span>
-                  </blockquote>
-
-                  {/* Enhanced Author Info */}
-                  <div className="relative">
-                    <h4 className="text-xl lg:text-2xl font-black text-magazine-text mb-2 hover:text-accent-yellow transition-colors duration-300">
-                      {testimonial.name}
-                    </h4>
-                    <p className="text-accent-yellow font-bold mb-1">
-                      {testimonial.role}
-                    </p>
-                    <p className="text-magazine-muted text-sm font-medium">
-                      {testimonial.company}
-                    </p>
-
-                    {/* Company Badge */}
-                    <div className="inline-flex items-center gap-2 mt-3 bg-magazine-bg/50 border border-magazine-border rounded-full px-3 py-1">
-                      <div
-                        className={`w-2 h-2 bg-gradient-to-r ${testimonial.color} rounded-full`}
-                      ></div>
-                      <span className="text-xs text-magazine-muted font-medium">
-                        Verified Client
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Enhanced Progress Bar */}
-            <div className="mt-12 mb-8">
-              <div className="w-full bg-magazine-border/30 rounded-full h-2 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-accent-yellow via-accent-orange to-accent-pink transition-all duration-300"
-                  style={{
-                    width: `${
-                      ((currentIndex + 1) / testimonials.length) * 100
-                    }%`,
-                  }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Enhanced Dots Indicator */}
-            <div className="flex justify-center space-x-3">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`rounded-full transition-all duration-300 hover:scale-125 ${
-                    index === currentIndex
-                      ? "w-8 h-4 bg-gradient-to-r from-accent-yellow to-accent-orange"
-                      : "w-4 h-4 bg-magazine-border hover:bg-accent-yellow/50"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Stats Section */}
-        <div className="grid sm:grid-cols-3 gap-8 text-center">
-          <div className="bg-magazine-card border border-magazine-border rounded-3xl p-8 hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:border-accent-yellow/50 group">
-            <div className="w-16 h-16 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-              💯
-            </div>
-            <div className="text-5xl font-black text-accent-yellow mb-3 group-hover:scale-110 transition-transform duration-300">
-              100%
-            </div>
-            <div className="text-magazine-muted font-semibold">
-              Client Satisfaction
-            </div>
-          </div>
-
-          <div className="bg-magazine-card border border-magazine-border rounded-3xl p-8 hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:border-accent-orange/50 group">
-            <div className="w-16 h-16 bg-gradient-to-r from-accent-orange to-accent-pink rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-              🚀
-            </div>
-            <div className="text-5xl font-black text-accent-orange mb-3 group-hover:scale-110 transition-transform duration-300">
-              15+
-            </div>
-            <div className="text-magazine-muted font-semibold">
-              Successful Projects
-            </div>
-          </div>
-
-          <div className="bg-magazine-card border border-magazine-border rounded-3xl p-8 hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:border-accent-pink/50 group">
-            <div className="w-16 h-16 bg-gradient-to-r from-accent-pink to-accent-purple rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-              ⭐
-            </div>
-            <div className="text-5xl font-black text-accent-pink mb-3 group-hover:scale-110 transition-transform duration-300">
-              4.9/5
-            </div>
-            <div className="text-magazine-muted font-semibold">
-              Average Rating
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Floating Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(50)].map((_, i) => (
-          <div
+    <section id="testimonials" ref={sectionRef} className="section-padding relative overflow-hidden">
+      {/* Stunning Animated Background */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none"
+        style={{ y }}
+      >
+        {/* Gradient Orbs */}
+        <motion.div 
+          className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-teal-600/20 via-emerald-600/10 to-transparent"
+          animate={{ 
+            opacity: [0.3, 0.5, 0.3],
+            scale: [1, 1.05, 1]
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+        />
+        <motion.div 
+          className="absolute -top-40 -right-40 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{ duration: 6, repeat: Infinity }}
+        />
+        <motion.div 
+          className="absolute bottom-0 -left-40 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.35, 0.2]
+          }}
+          transition={{ duration: 7, repeat: Infinity, delay: 2 }}
+        />
+        
+        {/* Floating Particles */}
+        {[...Array(15)].map((_, i) => (
+          <motion.div
             key={i}
-            className={`absolute rounded-full animate-float opacity-40 ${
-              i % 5 === 0
-                ? "w-3 h-3 bg-accent-yellow"
-                : i % 5 === 1
-                ? "w-2 h-2 bg-accent-pink"
-                : i % 5 === 2
-                ? "w-2 h-2 bg-accent-blue"
-                : i % 5 === 3
-                ? "w-1 h-1 bg-accent-purple"
-                : "w-1.5 h-1.5 bg-accent-orange"
-            }`}
+            className="absolute w-1 h-1 bg-gradient-to-r from-teal-400 to-emerald-400 rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 8}s`,
-              animationDuration: `${6 + Math.random() * 8}s`,
+            }}
+            animate={{
+              y: [0, -80, 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1, 0],
+            }}
+            transition={{
+              duration: 4 + Math.random() * 3,
+              repeat: Infinity,
+              delay: Math.random() * 2,
             }}
           />
         ))}
+      </motion.div>
+
+      <div className="container-custom relative z-10">
+        {/* Enhanced Section Heading */}
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <motion.div 
+            className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-gradient-to-r from-teal-500/20 to-emerald-500/20 border border-teal-400/30"
+            animate={{ 
+              scale: [1, 1.05, 1],
+              borderColor: ['rgba(20, 184, 166, 0.3)', 'rgba(16, 185, 129, 0.5)', 'rgba(20, 184, 166, 0.3)']
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <motion.span 
+              className="w-2 h-2 bg-teal-400 rounded-full"
+              animate={{ 
+                scale: [1, 1.5, 1],
+                opacity: [1, 0.7, 1]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            <span className="text-teal-300 text-sm font-semibold tracking-wide">
+              TESTIMONIALS
+            </span>
+          </motion.div>
+          
+          <motion.h2 
+            className="text-4xl md:text-6xl font-extrabold text-ink mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            What People{" "}
+            <span className="bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent animate-text-glow">
+              Say
+            </span>
+          </motion.h2>
+          
+          <motion.p 
+            className="text-lg text-muted max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            Professional endorsements from industry leaders, CEOs, and mentors who've witnessed my work firsthand
+          </motion.p>
+        </motion.div>
+
+        {/* Stunning Testimonial Display */}
+        <Reveal className="mx-auto max-w-4xl">
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            {/* Glowing Background Effect */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-600 rounded-3xl blur-2xl"
+              animate={{ 
+                opacity: [0.25, 0.4, 0.25],
+                scale: [1, 1.02, 1]
+              }}
+              transition={{ duration: 5, repeat: Infinity }}
+            />
+            
+            {/* Main Card */}
+            <div
+              className="relative bg-gradient-to-br from-slate-900/95 via-teal-900/90 to-emerald-900/95 rounded-3xl p-8 md:p-12 border border-white/10 backdrop-blur-xl shadow-2xl"
+              onMouseEnter={() => setAuto(false)}
+              onMouseLeave={() => setAuto(true)}
+            >
+              {/* Decorative Icons */}
+              <div className="absolute top-6 right-6 flex gap-2">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                >
+                  <FaCrown className="text-2xl text-yellow-400/50" />
+                </motion.div>
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <FaGem className="text-2xl text-pink-400/50" />
+                </motion.div>
+              </div>
+
+              {/* Featured Badge */}
+              {t.featured && (
+                <motion.div 
+                  className="absolute top-6 left-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/30"
+                  animate={{ 
+                    scale: [1, 1.05, 1],
+                    opacity: [0.8, 1, 0.8]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <FaFire className="text-yellow-400" />
+                  </motion.div>
+                  <span className="text-yellow-300 text-xs font-bold">FEATURED</span>
+                </motion.div>
+              )}
+
+              {/* Quote Icon */}
+              <motion.div
+                className="mb-6"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, 0, -5, 0]
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                <FaQuoteLeft className="text-5xl text-teal-400/40" />
+              </motion.div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {/* Testimonial Text */}
+                  <p className="text-xl md:text-2xl leading-relaxed text-white/90 mb-8 font-light">
+                    "{t.text}"
+                  </p>
+
+                  {/* Person Info */}
+                  <div className="flex items-center gap-6">
+                    <div className="relative">
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full blur-md opacity-50"
+                        animate={{ 
+                          scale: [1, 1.1, 1],
+                          opacity: [0.5, 0.7, 0.5]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      />
+                      <span
+                        aria-hidden="true"
+                        className="absolute inset-0 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-emerald-700 text-xl font-bold text-white"
+                      >
+                        {t.name
+                          .split(/\s+/)
+                          .slice(0, 2)
+                          .map((part) => part[0])
+                          .join("")}
+                      </span>
+                      <img
+                        src={t.image}
+                        alt={t.name}
+                        loading="lazy"
+                        width={80}
+                        height={80}
+                        className="relative h-20 w-20 rounded-full border-3 border-white/20 object-cover shadow-xl"
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <motion.div
+                        className="absolute -bottom-2 -right-2 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full p-2"
+                        animate={{ 
+                          scale: [1, 1.1, 1]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <FaCheckCircle className="text-white text-sm" />
+                      </motion.div>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-2xl font-bold text-white">{t.name}</h3>
+                        {t.badge && (
+                          <motion.div 
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r ${t.badgeColor} text-white text-xs font-bold`}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {t.badgeIcon}
+                            {t.badge}
+                          </motion.div>
+                        )}
+                      </div>
+                      <div className="text-teal-200/80 mb-3">{t.role}</div>
+                      <div className="flex gap-1">
+                        {[...Array(t.rating)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: i * 0.1, duration: 0.3 }}
+                          >
+                            <FaStar className="text-yellow-400 text-lg" />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Enhanced Controls */}
+              <div className="mt-10 flex items-center justify-between">
+                <div className="flex gap-3">
+                  {TESTIMONIALS.map((_, i) => (
+                    <motion.button
+                      key={i}
+                      onClick={() => setIndex(i)}
+                      aria-label={`Go to testimonial ${i + 1}`}
+                      className={`h-3 rounded-full transition-all ${
+                        i === index 
+                          ? "w-8 bg-gradient-to-r from-teal-500 to-emerald-500 shadow-lg shadow-teal-500/50" 
+                          : "w-3 bg-white/20 hover:bg-white/40"
+                      }`}
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.9 }}
+                    />
+                  ))}
+                </div>
+                
+                <div className="flex gap-3">
+                  <motion.button
+                    onClick={prev}
+                    aria-label="Previous"
+                    className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white/60 hover:border-teal-400/50 hover:text-teal-300 hover:bg-teal-500/20 transition-all"
+                    whileHover={{ scale: 1.1, rotate: -5 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <FaChevronLeft />
+                  </motion.button>
+                  <motion.button
+                    onClick={next}
+                    aria-label="Next"
+                    className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white/60 hover:border-emerald-400/50 hover:text-emerald-300 hover:bg-emerald-500/20 transition-all"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <FaChevronRight />
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </Reveal>
+
+        {/* Stats Section */}
+        <motion.div 
+          className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
+          {[
+            { value: "5+", label: "Testimonials", icon: <FaStar /> },
+            { value: "3", label: "CEOs", icon: <FaBuilding /> },
+            { value: "2", label: "Founders", icon: <FaAward /> },
+            { value: "5", label: "Star Rating", icon: <FaTrophy /> }
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              className="glass p-6 rounded-2xl text-center border border-white/10"
+              whileHover={{ 
+                scale: 1.05,
+                borderColor: 'rgba(20, 184, 166, 0.3)'
+              }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.div
+                className="text-3xl mb-2 text-teal-400"
+                whileHover={{ scale: 1.2, rotate: 10 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                {stat.icon}
+              </motion.div>
+              <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+              <div className="text-sm text-teal-200/70">{stat.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );

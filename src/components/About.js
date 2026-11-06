@@ -1,264 +1,296 @@
-import React from "react";
-import wadaImg from "../images/dave.jpg";
-
+import React, { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import {
   FaGraduationCap,
   FaCode,
   FaBrain,
   FaRocket,
   FaAward,
-  FaUsers,
+  FaLaptopCode,
+  FaProjectDiagram,
 } from "react-icons/fa";
+import wadaImg from "../images/dave.jpg";
+import { PERSONAL_INFO } from "../utils/constants";
+import Reveal from "./ui/Reveal";
+import TiltCard from "./ui/TiltCard";
+import SectionHeading from "./ui/SectionHeading";
+import useCountUp from "../hooks/useCountUp";
+
+
+const HIGHLIGHTS = [
+  {
+    icon: <FaGraduationCap />,
+    title: "Education",
+    description: "B.Sc. Software Engineering at Jimma University (2025-2029)",
+    color: "from-brand to-emerald-500",
+  },
+  {
+    icon: <FaCode />,
+    title: "Full-Stack Development",
+    description: "React, NestJS, Node.js, PostgreSQL & MongoDB",
+    color: "from-emerald-500 to-teal-500",
+  },
+  {
+    icon: <FaBrain />,
+    title: "Production Experience",
+    description: "Delivered complete B2B e-commerce backend & real estate platforms",
+    color: "from-teal-500 to-cyan-500",
+  },
+  {
+    icon: <FaRocket />,
+    title: "Professional Work",
+    description: "Paid internships at Andropia PLC & Debo Engineering PLC",
+    color: "from-cyan-500 to-brand",
+  },
+  {
+    icon: <FaAward />,
+    title: "Achievements",
+    description: "95% ML accuracy, internship certificates, and recognition",
+    color: "from-brand to-purple-500",
+  },
+  {
+    icon: <FaLaptopCode />,
+    title: "Continuous Learning",
+    description: "Actively expanding skills in Java, Prisma, and AWS",
+    color: "from-purple-500 to-pink-500",
+  },
+];
+
+const STATS = [
+  { end: 15, suffix: "+", label: "Projects Completed", icon: <FaProjectDiagram /> },
+  { end: 4, suffix: "", label: "Paid Internships", icon: <FaAward /> },
+  { end: 18, suffix: "+", label: "Technologies", icon: <FaCode /> },
+  { end: 95, suffix: "%", label: "ML Accuracy", icon: <FaBrain /> },
+];
+
+const StatItem = ({ end, suffix, label, icon }) => {
+  const [ref, value] = useCountUp(end);
+  return (
+    <motion.div 
+      ref={ref} 
+      className="text-center group"
+      whileHover={{ scale: 1.05, y: -5 }}
+      transition={{ type: "spring", stiffness: 300 }}
+    >
+      <motion.div 
+        className="mb-3 flex justify-center"
+        whileHover={{ rotate: 360 }}
+        transition={{ duration: 0.6 }}
+      >
+        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand/20 to-emerald-500/20 text-brand-300 group-hover:from-brand/30 group-hover:to-emerald-500/30 transition-all duration-300">
+          {icon}
+        </span>
+      </motion.div>
+      <div className="text-3xl font-extrabold text-brand-300 sm:text-4xl">
+        {value}
+        {suffix}
+      </div>
+      <div className="mt-1 text-sm text-muted group-hover:text-brand-300 transition-colors duration-300">{label}</div>
+    </motion.div>
+  );
+};
 
 const About = () => {
-  const highlights = [
-    {
-      icon: <FaGraduationCap />,
-      title: "Education",
-      description:
-        "Fourth-year Software Engineering student at Jimma University",
-      color: "from-accent-yellow to-accent-orange",
-    },
-    {
-      icon: <FaCode />,
-      title: "Development",
-      description: "Full-stack web development with modern technologies",
-      color: "from-accent-blue to-accent-purple",
-    },
-    {
-      icon: <FaBrain />,
-      title: "AI/ML",
-      description: "Machine Learning and Deep Learning enthusiast",
-      color: "from-accent-pink to-accent-red",
-    },
-    {
-      icon: <FaRocket />,
-      title: "Innovation",
-      description: "Passionate about solving real-world problems",
-      color: "from-accent-green to-accent-blue",
-    },
-  ];
-
-  const achievements = [
-    { number: "15+", label: "Projects Completed", icon: <FaCode /> },
-    { number: "3+", label: "Years Experience", icon: <FaAward /> },
-    { number: "10+", label: "Technologies", icon: <FaBrain /> },
-    { number: "100%", label: "Dedication", icon: <FaUsers /> },
-  ];
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+  
+  const y = useTransform(scrollYProgress, [0, 1], [50, -50]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
   return (
-    <section
-      id="about"
-      className="section-padding bg-magazine-bg relative overflow-hidden"
-    >
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-r from-accent-yellow/10 to-accent-orange/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-r from-accent-pink/10 to-accent-purple/10 rounded-full blur-3xl"></div>
-      </div>
+    <section id="about" ref={sectionRef} className="section-padding relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none"
+        style={{ y, opacity }}
+      >
+        <div className="absolute top-20 right-20 w-64 h-64 bg-brand/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 left-20 w-80 h-80 bg-emerald-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </motion.div>
 
       <div className="container-custom relative z-10">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-accent-yellow/10 border border-accent-yellow/30 rounded-full px-4 py-2 text-accent-yellow text-sm font-medium backdrop-blur-sm mb-4">
-            <div className="w-2 h-2 bg-accent-yellow rounded-full animate-pulse"></div>
-            Get to know me
-          </div>
-          <h2 className="text-5xl lg:text-6xl font-black text-magazine-text mb-4 font-display">
-            About{" "}
-            <span className="bg-gradient-to-r from-accent-yellow via-accent-orange to-accent-pink bg-clip-text text-transparent">
-              Me
-            </span>
-          </h2>
-          <p className="text-xl text-magazine-muted max-w-3xl mx-auto leading-relaxed">
-            A passionate software engineer crafting digital experiences and
-            exploring the future of technology
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Get to know me"
+          title="About"
+          highlight="Me"
+          subtitle="A passionate software engineer crafting digital experiences and exploring the future of technology."
+        />
 
-        <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
-          {/* Profile Image */}
-          <div className="flex justify-center lg:justify-start animate-slideLeft">
-            <div className="relative group">
-              {/* Main Image Container */}
-              <div className="relative w-80 h-96 lg:w-96 lg:h-[450px]">
-                {/* Animated Border */}
-                <div className="absolute inset-0 bg-gradient-to-r from-accent-yellow via-accent-orange via-accent-pink to-accent-purple rounded-3xl animate-gradient bg-300% p-1">
-                  <div className="w-full h-full bg-magazine-bg rounded-3xl"></div>
-                </div>
-
-                {/* Profile Image */}
-                <div className="absolute inset-4 rounded-full overflow-hidden border-4 border-magazine-card z-20">
-                  <img
-                    src={wadaImg}
-                    alt="Wada Abera"
-                    className="w-full h-full object-cover"
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-magazine-bg/20 to-transparent"></div>
-                </div>
-
-                {/* Floating Elements */}
-                <div className="absolute -top-6 -right-6 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-2xl p-4 shadow-2xl animate-float">
-                  <FaCode size={24} className="text-magazine-bg" />
-                </div>
-
-                <div
-                  className="absolute -bottom-6 -left-6 bg-gradient-to-r from-accent-pink to-accent-purple rounded-2xl p-4 shadow-2xl animate-float"
-                  style={{ animationDelay: "1s" }}
-                >
-                  <FaBrain size={24} className="text-white" />
-                </div>
-
-                {/* Decorative Particles */}
-                {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute w-2 h-2 bg-accent-yellow rounded-full animate-pulse opacity-60"
-                    style={{
-                      left: `${10 + Math.random() * 80}%`,
-                      top: `${10 + Math.random() * 80}%`,
-                      animationDelay: `${Math.random() * 2}s`,
-                    }}
-                  />
-                ))}
+        <div className="mb-12 sm:mb-16 grid items-center gap-8 lg:gap-12 lg:grid-cols-12">
+          {/* Enhanced Image */}
+          <Reveal className="lg:col-span-5 order-first lg:order-last" y={0}>
+            <motion.div
+              className="relative mx-auto max-w-xs sm:max-w-sm group"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.div 
+                className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-brand/30 to-emerald-400/30 blur-2xl"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  opacity: [0.3, 0.5, 0.3]
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+              />
+              <div className="relative overflow-hidden rounded-3xl border-2 border-brand/30 shadow-2xl shadow-brand/20">
+                <img
+                  src={wadaImg}
+                  alt="Wada Abera"
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/5] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-bg/80 via-transparent to-transparent" />
+                
+                {/* Interactive overlay */}
+                <motion.div 
+                  className="absolute inset-0 bg-brand/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  whileHover={{ opacity: 0.1 }}
+                />
               </div>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="animate-slideRight space-y-8">
-            <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-magazine-text font-heading">
-                Crafting Digital Excellence
-              </h3>
-
-              <div className="space-y-4 text-magazine-muted leading-relaxed">
-                <p>
-                  I am a{" "}
-                  <span className="text-accent-yellow font-semibold">
-                    fourth-year Software Engineering student
-                  </span>{" "}
-                  at Jimma University with a strong foundation in programming
-                  languages, algorithms, data structures, and software
-                  development principles.
-                </p>
-
-                <p>
-                  My journey in technology spans{" "}
-                  <span className="text-accent-orange font-semibold">
-                    full-stack development
-                  </span>
-                  , where I create seamless user experiences, and{" "}
-                  <span className="text-accent-pink font-semibold">
-                    machine learning
-                  </span>
-                  , where I explore the possibilities of artificial
-                  intelligence.
-                </p>
-
-                <p>
-                  I believe in{" "}
-                  <span className="text-accent-blue font-semibold">
-                    continuous learning
-                  </span>{" "}
-                  and applying engineering principles to solve real-world
-                  challenges. Every project is an opportunity to push boundaries
-                  and create something meaningful.
-                </p>
-              </div>
-            </div>
-
-            {/* Highlights Grid */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              {highlights.map((item, index) => (
-                <div
-                  key={index}
-                  className="group bg-magazine-card border border-magazine-border rounded-2xl p-6 hover:scale-105 transition-all duration-300 hover:shadow-2xl relative overflow-hidden"
+              
+              {/* Enhanced badge */}
+              <motion.div
+                className="glass absolute -bottom-4 sm:-bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 shadow-soft border border-brand/30"
+                whileHover={{ y: -5, scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <motion.span 
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand/20 to-emerald-500/20 text-brand-300"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.6 }}
                 >
-                  {/* Background Gradient */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-r ${item.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                  ></div>
+                  <FaCode />
+                </motion.span>
+                <div className="leading-tight">
+                  <div className="text-sm font-bold text-ink">
+                    {PERSONAL_INFO.year}
+                  </div>
+                  <div className="text-xs text-muted">SE Student</div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </Reveal>
 
-                  <div className="relative z-10">
-                    <div
-                      className={`w-12 h-12 bg-gradient-to-r ${item.color} rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300`}
+          {/* Enhanced Content */}
+          <div className="space-y-8 lg:col-span-7">
+            <Reveal>
+              <motion.h3 
+                className="text-2xl font-bold text-ink sm:text-3xl"
+                whileHover={{ x: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                Building Production-Grade Applications from Frontend to Database
+              </motion.h3>
+            </Reveal>
+            
+            <Reveal delay={0.05}>
+              <p className="leading-relaxed text-muted">
+                I'm a{" "}
+                <motion.span 
+                  className="font-semibold text-brand-300 inline-block"
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  Full-Stack Developer
+                </motion.span>{" "}
+                with hands-on experience building complete, production-style applications end to end — 
+                from React front ends to NestJS/Node.js APIs backed by PostgreSQL and MongoDB.
+              </p>
+            </Reveal>
+            
+            <Reveal delay={0.1}>
+              <p className="leading-relaxed text-muted">
+                I delivered the entire{" "}
+                <motion.span 
+                  className="font-semibold text-brand-300 inline-block"
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  backend for a B2B e-commerce platform
+                </motion.span>{" "}
+                during a paid internship at Andropia PLC, including secure OTP-based authentication, 
+                and independently built full-stack{" "}
+                <motion.span 
+                  className="font-semibold text-brand-300 inline-block"
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  real estate/rental and e-commerce platforms
+                </motion.span>{" "}
+                integrating React with Express, PostgreSQL, and MongoDB.
+              </p>
+            </Reveal>
+            
+            <Reveal delay={0.15}>
+              <p className="leading-relaxed text-muted">
+                Comfortable owning a feature from UI to database schema, with a strong focus on{" "}
+                <motion.span 
+                  className="font-semibold text-brand-300 inline-block"
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  secure API design, clean architecture, responsive interfaces, and scalable systems
+                </motion.span>
+                . Currently pursuing B.Sc. Software Engineering at {PERSONAL_INFO.university} and 
+                actively deepening skills in Java, Prisma, and AWS.
+              </p>
+            </Reveal>
+
+            {/* Enhanced Highlights */}
+            <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {HIGHLIGHTS.map((item, i) => (
+                <Reveal key={item.title} delay={i * 0.08}>
+                  <TiltCard max={12} lift={8} className="glass group h-full p-4 sm:p-6 border border-line/50 hover:border-brand/30 transition-all duration-300">
+                    <motion.div 
+                      className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand/20 to-emerald-500/20 text-lg text-brand-300 transition-all duration-300 group-hover:scale-110 group-hover:from-brand/30 group-hover:to-emerald-500/30"
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
                     >
                       {item.icon}
-                    </div>
-                    <h4 className="font-bold text-magazine-text mb-2 group-hover:text-accent-yellow transition-colors duration-300">
-                      {item.title}
-                    </h4>
-                    <p className="text-sm text-magazine-muted leading-relaxed">
+                    </motion.div>
+                    <h4 className="mb-2 font-semibold text-ink group-hover:text-brand-300 transition-colors duration-300">{item.title}</h4>
+                    <p className="text-sm leading-relaxed text-muted">
                       {item.description}
                     </p>
-                  </div>
-                </div>
+                    <motion.div 
+                      className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-brand to-emerald-500"
+                      initial={{ width: 0 }}
+                      whileHover={{ width: '100%' }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </TiltCard>
+                </Reveal>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Achievements Section */}
-        <div className="bg-magazine-card border border-magazine-border rounded-3xl p-8 lg:p-12 relative overflow-hidden">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 bg-hero-pattern opacity-5"></div>
-
-          <div className="relative z-10">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-magazine-text mb-4 font-heading">
-                Achievements &{" "}
-                <span className="text-accent-yellow">Milestones</span>
-              </h3>
-              <p className="text-magazine-muted">
-                Numbers that reflect my journey and dedication to excellence
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {achievements.map((achievement, index) => (
-                <div
-                  key={index}
-                  className="text-center group animate-fadeIn"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="w-16 h-16 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-2xl flex items-center justify-center text-magazine-bg text-xl mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 group-hover:rotate-12">
-                    {achievement.icon}
-                  </div>
-                  <div className="text-4xl font-black text-accent-yellow mb-2 group-hover:scale-110 transition-transform duration-300">
-                    {achievement.number}
-                  </div>
-                  <div className="text-magazine-muted font-medium">
-                    {achievement.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Floating Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute w-1 h-1 rounded-full animate-float opacity-30 ${
-              i % 3 === 0
-                ? "bg-accent-yellow"
-                : i % 3 === 1
-                ? "bg-accent-pink"
-                : "bg-accent-blue"
-            }`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${4 + Math.random() * 4}s`,
-            }}
-          />
-        ))}
+        {/* Enhanced Stats band */}
+        <Reveal>
+          <motion.div
+            className="glass grid grid-cols-2 gap-4 sm:gap-8 p-6 sm:p-10 sm:grid-cols-4 border border-brand/20"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            {STATS.map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.6 }}
+              >
+                <StatItem {...s} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </Reveal>
       </div>
     </section>
   );

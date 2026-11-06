@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import wadacont from "../images/lubbu.jpg";
-import emailjs from "@emailjs/browser";
+/* eslint-disable react/jsx-no-duplicate-props */
+import React, { useState, useRef } from "react";
 import {
   FaEnvelope,
   FaPhone,
@@ -8,473 +7,411 @@ import {
   FaGithub,
   FaLinkedin,
   FaTelegram,
-  FaPaperPlane,
   FaUser,
   FaSpinner,
   FaRocket,
-  FaCheckCircle,
-  FaExclamationTriangle,
+  FaHeart,
 } from "react-icons/fa";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { PERSONAL_INFO, SOCIAL_LINKS } from "../utils/constants";
+import SectionHeading from "./ui/SectionHeading";
+import Reveal from "./ui/Reveal";
+import MagneticButton from "./ui/MagneticButton";
+// eslint-disable-next-line no-unused-vars
+import emailjs from '@emailjs/browser';
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    phoneNumber: "",
-    email: "",
-    subject: "",
-    message: "",
+const EMPTY = { fullName: "", email: "", subject: "", message: "" };
+
+const Contact = ({ addToast }) => {
+  const [form, setForm] = useState(EMPTY);
+  const [sending, setSending] = useState(false);
+  const sectionRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
+  
+  const y = useTransform(scrollYProgress, [0, 1], [30, -30]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const onChange = (e) =>
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus(null);
+    setSending(true);
 
-    try {
-      // EmailJS configuration - You need to set up EmailJS account
-      const templateParams = {
-        from_name: formData.fullName,
-        from_email: formData.email,
-        phone_number: formData.phoneNumber,
-        subject: formData.subject,
-        message: formData.message,
-        to_email: "waadaaabarraa@gmail.com",
-      };
+    // Using EmailJS to send actual emails
+    const templateParams = {
+      name: form.fullName,
+      email: form.email,
+      subject: form.subject || "Portfolio Contact",
+      message: form.message,
+      time: new Date().toLocaleString(),
+      to_email: PERSONAL_INFO.email,
+    };
 
-      // Initialize EmailJS (replace with your actual IDs)
-      await emailjs.send(
-        "service_portfolio", // Your EmailJS service ID
-        "template_contact", // Your EmailJS template ID
-        templateParams,
-        "your_public_key" // Your EmailJS public key
-      );
+    const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+    const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
 
-      setSubmitStatus("success");
-      setFormData({
-        fullName: "",
-        phoneNumber: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
-    } catch (error) {
-      console.error("Email sending failed:", error);
+    if (!serviceId || !templateId || !publicKey) {
+      // Fallback to mailto if EmailJS credentials not configured
+      console.warn('EmailJS credentials not configured, using mailto fallback');
+      const body = `Name: ${form.fullName}\nEmail: ${form.email}\n\n${form.message}`;
+      const mailto = `mailto:${PERSONAL_INFO.email}?subject=${encodeURIComponent(
+        form.subject || "Portfolio Contact"
+      )}&body=${encodeURIComponent(body)}`;
       
-      // Fallback: Create mailto link
-      const mailtoLink = `mailto:waadaaabarraa@gmail.com?subject=${encodeURIComponent(
-        formData.subject || 'Portfolio Contact'
-      )}&body=${encodeURIComponent(
-        `Name: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phoneNumber}\n\nMessage:\n${formData.message}`
-      )}`;
-      
-      window.open(mailtoLink, '_blank');
-      setSubmitStatus("success");
-      setFormData({
-        fullName: "",
-        phoneNumber: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
-    } finally {
-      setIsSubmitting(false);
+      setTimeout(() => {
+        window.location.href = mailto;
+        setSending(false);
+        addToast?.(
+          "Your mail app is opening with the message ready to send!",
+          "success",
+          4000
+        );
+        setForm(EMPTY);
+      }, 600);
+      return;
     }
+
+    emailjs.send(serviceId, templateId, templateParams, publicKey)
+    .then((result) => {
+      setSending(false);
+      addToast?.(
+        "Message sent successfully! I'll get back to you soon.",
+        "success",
+        4000
+      );
+      setForm(EMPTY);
+    })
+    .catch((error) => {
+      setSending(false);
+      addToast?.(
+        "Failed to send message. Please try again or email directly.",
+        "error",
+        4000
+      );
+      console.error('EmailJS Error:', error);
+      
+      // Fallback to mailto if EmailJS fails
+      const body = `Name: ${form.fullName}\nEmail: ${form.email}\n\n${form.message}`;
+      const mailto = `mailto:${PERSONAL_INFO.email}?subject=${encodeURIComponent(
+        form.subject || "Portfolio Contact"
+      )}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailto;
+    });
   };
+
+  const contactRows = [
+    {
+      icon: <FaEnvelope />,
+      label: "Email",
+      value: PERSONAL_INFO.email,
+      href: `mailto:${PERSONAL_INFO.email}`,
+    },
+    {
+      icon: <FaPhone />,
+      label: "Phone",
+      value: PERSONAL_INFO.phone,
+      href: `tel:${PERSONAL_INFO.phone}`,
+    },
+    {
+      icon: <FaMapMarkerAlt />,
+      label: "Location",
+      value: PERSONAL_INFO.location,
+      href: null,
+    },
+  ];
+
+  const socials = [
+    { icon: <FaGithub />, href: SOCIAL_LINKS.github, label: "GitHub" },
+    { icon: <FaLinkedin />, href: SOCIAL_LINKS.linkedin, label: "LinkedIn" },
+    { icon: <FaTelegram />, href: SOCIAL_LINKS.telegram, label: "Telegram" },
+  ];
 
   return (
-    <section
-      id="contact"
-      className="section-padding bg-magazine-bg relative overflow-hidden"
-    >
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-r from-accent-yellow/10 to-accent-orange/10 rounded-full blur-3xl animate-pulse"></div>
-        <div
-          className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-r from-accent-pink/10 to-accent-purple/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
-        ></div>
-        <div
-          className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-r from-accent-blue/5 to-accent-green/5 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "4s" }}
-        ></div>
-        <div className="absolute inset-0 bg-hero-pattern opacity-5"></div>
-      </div>
+    <section id="contact" ref={sectionRef} className="section-padding relative overflow-hidden">
+      {/* Animated Background */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none"
+        style={{ y }}
+      >
+        <div className="absolute top-20 right-20 w-80 h-80 bg-brand/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </motion.div>
 
       <div className="container-custom relative z-10">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-accent-yellow/10 border border-accent-yellow/30 rounded-full px-6 py-3 text-accent-yellow text-sm font-bold backdrop-blur-sm mb-6 animate-pulse">
-            <div className="w-3 h-3 bg-accent-yellow rounded-full animate-ping"></div>
-            Let's Work Together
-          </div>
-          <h2 className="text-5xl lg:text-7xl font-black text-magazine-text mb-6 font-display leading-tight">
-            Contact{" "}
-            <span className="bg-gradient-to-r from-accent-yellow via-accent-orange to-accent-pink bg-clip-text text-transparent animate-gradient bg-300%">
-              With Me
-            </span>
-          </h2>
-          <p className="text-xl lg:text-2xl text-magazine-muted max-w-4xl mx-auto leading-relaxed">
-            Ready to start your next project? Let's discuss how we can work
-            together to bring your ideas to life.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Let's Work Together"
+          title="Get In"
+          highlight="Touch"
+          subtitle="Have a project, an opportunity, or just want to say hello? My inbox is always open."
+        />
 
-        <div className="grid lg:grid-cols-2 gap-16 xl:gap-20">
-          {/* Left Side - Profile & Contact Info */}
-          <div className="space-y-8 animate-slideLeft">
-            {/* Main Profile Card */}
-            <div className="bg-magazine-card border border-magazine-border rounded-3xl p-8 relative overflow-hidden group hover:scale-105 transition-all duration-500 hover:shadow-2xl hover:border-accent-yellow/50">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-yellow/5 via-accent-orange/5 to-accent-pink/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-              <div className="relative z-10">
-                {/* Profile Section */}
-                <div className="flex flex-col sm:flex-row items-center gap-6 mb-8">
-                  {/* Profile Image */}
-                  <div className="relative">
-                    <div className="w-32 h-32 bg-gradient-to-r from-accent-yellow via-accent-orange to-accent-pink rounded-3xl p-1 animate-gradient bg-300%">
-                      <div className="w-full h-full bg-magazine-bg rounded-3xl overflow-hidden">
-                        <img
-                          src={wadacont}
-                          alt="Wada Abera"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-                    {/* Status Indicator */}
-                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-accent-green rounded-full border-4 border-magazine-bg flex items-center justify-center">
-                      <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                    </div>
-                  </div>
-
-                  {/* Profile Info */}
-                  <div className="text-center sm:text-left">
-                    <h3 className="text-3xl font-black text-accent-yellow mb-2 font-display">
-                      {PERSONAL_INFO.name}
-                    </h3>
-                    <p className="text-lg text-magazine-text font-semibold mb-3">
-                      {PERSONAL_INFO.title}
-                    </p>
-                    <p className="text-magazine-muted leading-relaxed mb-4">
-                      I am available for freelance work. Connect with me via
-                      email and call to discuss your project.
-                    </p>
-                    <div className="inline-flex items-center gap-2 bg-accent-green/10 border border-accent-green/30 rounded-full px-4 py-2 text-accent-green text-sm font-bold">
-                      <div className="w-2 h-2 bg-accent-green rounded-full animate-pulse"></div>
-                      Available for Projects
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Details */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-4 bg-magazine-bg/50 rounded-2xl border border-magazine-border/50">
-                    <div className="w-12 h-12 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-xl flex items-center justify-center text-white">
-                      <FaPhone />
-                    </div>
-                    <div>
-                      <p className="text-accent-yellow font-semibold text-sm">
-                        Phone:
-                      </p>
-                      <p className="text-accent-pink font-bold text-lg">
-                        {PERSONAL_INFO.phone}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 p-4 bg-magazine-bg/50 rounded-2xl border border-magazine-border/50">
-                    <div className="w-12 h-12 bg-gradient-to-r from-accent-pink to-accent-purple rounded-xl flex items-center justify-center text-white">
-                      <FaEnvelope />
-                    </div>
-                    <div>
-                      <p className="text-accent-yellow font-semibold text-sm">
-                        Email:
-                      </p>
-                      <p className="text-accent-pink font-bold text-lg break-all">
-                        {PERSONAL_INFO.email}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Social Links */}
-                <div className="flex gap-4 mt-8 pt-6 border-t border-magazine-border">
-                  <a
-                    href={SOCIAL_LINKS.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-14 h-14 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-2xl flex items-center justify-center text-white hover:scale-110 hover:rotate-12 transition-all duration-300 shadow-lg hover:shadow-2xl"
-                  >
-                    <FaGithub size={20} />
-                  </a>
-                  <a
-                    href={SOCIAL_LINKS.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-14 h-14 bg-gradient-to-r from-accent-blue to-accent-purple rounded-2xl flex items-center justify-center text-white hover:scale-110 hover:rotate-12 transition-all duration-300 shadow-lg hover:shadow-2xl"
-                  >
-                    <FaLinkedin size={20} />
-                  </a>
-                  <a
-                    href={SOCIAL_LINKS.telegram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-14 h-14 bg-gradient-to-r from-accent-pink to-accent-red rounded-2xl flex items-center justify-center text-white hover:scale-110 hover:rotate-12 transition-all duration-300 shadow-lg hover:shadow-2xl"
-                  >
-                    <FaTelegram size={20} />
-                  </a>
-                </div>
+        <div className="grid gap-8 lg:gap-10 lg:grid-cols-5">
+          {/* Enhanced Info */}
+          <Reveal className="lg:col-span-2 order-first lg:order-last">
+            <motion.div
+              className="glass h-full space-y-6 sm:space-y-8 p-6 sm:p-8 border border-line/50"
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <div>
+                <motion.h3 
+                  className="text-2xl font-bold text-ink mb-4"
+                  whileHover={{ x: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  Let's build something extraordinary
+                </motion.h3>
+                <p className="text-sm leading-relaxed text-muted">
+                  I'm currently open to internships, freelance work, and
+                  collaborations. Reach out through the form or any channel
+                  below.
+                </p>
               </div>
-            </div>
 
-            {/* Quick Contact Cards */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <a
-                href={`mailto:${PERSONAL_INFO.email}`}
-                className="bg-magazine-card border border-magazine-border rounded-2xl p-6 hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:border-accent-yellow/50 group"
-              >
-                <div className="w-12 h-12 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <FaEnvelope />
-                </div>
-                <h4 className="font-bold text-magazine-text group-hover:text-accent-yellow transition-colors duration-300 mb-2">
-                  Email Me
-                </h4>
-                <p className="text-magazine-muted text-sm">
-                  Send me an email directly
-                </p>
-              </a>
-
-              <a
-                href={`tel:${PERSONAL_INFO.phone}`}
-                className="bg-magazine-card border border-magazine-border rounded-2xl p-6 hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:border-accent-pink/50 group"
-              >
-                <div className="w-12 h-12 bg-gradient-to-r from-accent-pink to-accent-purple rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <FaPhone />
-                </div>
-                <h4 className="font-bold text-magazine-text group-hover:text-accent-pink transition-colors duration-300 mb-2">
-                  Call Me
-                </h4>
-                <p className="text-magazine-muted text-sm">
-                  Let's talk about your project
-                </p>
-              </a>
-            </div>
-          </div>
-
-          {/* Right Side - Contact Form */}
-          <div className="animate-slideRight">
-            <div className="bg-magazine-card border border-magazine-border rounded-3xl p-8 lg:p-10 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-pink/5 via-accent-purple/5 to-accent-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-              <div className="relative z-10">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-r from-accent-pink to-accent-purple rounded-2xl flex items-center justify-center text-white">
-                    <FaRocket size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-3xl font-black text-magazine-text font-display">
-                      Send Message
-                    </h3>
-                    <p className="text-magazine-muted">
-                      Let's start something amazing together
-                    </p>
-                  </div>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Your Name */}
-                  <div>
-                    <label
-                      htmlFor="fullName"
-                      className="block text-sm font-bold text-accent-yellow mb-3"
+              <div className="space-y-4">
+                {contactRows.map((row, index) => {
+                  const inner = (
+                    <motion.div 
+                      className="flex items-center gap-4 rounded-xl border border-line/50 bg-bg/40 p-4 transition-all duration-300 hover:border-brand/40 hover:bg-brand/10 group"
+                      whileHover={{ x: 5, scale: 1.02 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1, duration: 0.5 }}
                     >
-                      Your Name
-                    </label>
-                    <div className="relative group">
-                      <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-magazine-muted group-focus-within:text-accent-yellow transition-colors duration-300" />
+                      <motion.span
+                        className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand/20 to-emerald-500/20 text-brand-300 group-hover:from-brand/30 group-hover:to-emerald-500/30 transition-all duration-300"
+                        whileHover={{ scale: 1.1, rotate: 10 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        {row.icon}
+                      </motion.span>
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted group-hover:text-brand-300 transition-colors duration-300">{row.label}</div>
+                        <div className="truncate text-sm font-medium text-ink group-hover:text-brand-300 transition-colors duration-300">
+                          {row.value}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                  return row.href ? (
+                    <a key={row.label} href={row.href} className="block">
+                      {inner}
+                    </a>
+                  ) : (
+                    <div key={row.label}>{inner}</div>
+                  );
+                })}
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                {socials.map((s, index) => (
+                  <motion.a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
+                    whileHover={{
+                      y: -8,
+                      rotate: index % 2 === 0 ? 12 : -12,
+                      scale: 1.15,
+                      boxShadow: "0 20px 40px rgba(16, 185, 129, 0.3)"
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    className="flex h-12 w-12 items-center justify-center rounded-xl border border-line/50 bg-bg/40 text-muted hover:border-brand/50 hover:text-brand-300"
+                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  >
+                    {s.icon}
+                  </motion.a>
+                ))}
+              </div>
+            </motion.div>
+          </Reveal>
+
+          {/* Enhanced Form */}
+          <Reveal delay={0.15} className="lg:col-span-3">
+            <motion.form
+              onSubmit={handleSubmit}
+              className="glass space-y-4 sm:space-y-6 p-6 sm:p-8 border border-line/50"
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="fullName"
+                    className="mb-2 block text-sm font-medium text-ink"
+                  >
+                    Name
+                  </label>
+                  <div className="relative group">
+                    <motion.div 
+                      className="absolute -inset-0.5 bg-gradient-to-r from-brand to-emerald-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"
+                    />
+                    <div className="relative">
+                      <FaUser className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted group-hover:text-brand-300 transition-colors duration-300" />
                       <input
-                        type="text"
                         id="fullName"
                         name="fullName"
-                        value={formData.fullName}
-                        onChange={handleInputChange}
+                        value={form.fullName}
+                        onChange={onChange}
                         required
-                        className="w-full pl-12 pr-4 py-4 bg-magazine-bg border-2 border-magazine-border rounded-2xl text-magazine-text placeholder-magazine-muted focus:border-accent-yellow focus:outline-none transition-all duration-300 hover:border-accent-yellow/50"
-                        placeholder="Enter your full name"
+                        placeholder="Your name"
+                        className="input-field !pl-11 !border-line/50 group-hover:border-brand/30 transition-colors duration-300"
+                        aria-label="Your name"
                       />
                     </div>
                   </div>
-
-                  {/* Phone Number */}
-                  <div>
-                    <label
-                      htmlFor="phoneNumber"
-                      className="block text-sm font-bold text-accent-yellow mb-3"
-                    >
-                      Phone Number
-                    </label>
-                    <div className="relative group">
-                      <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-magazine-muted group-focus-within:text-accent-orange transition-colors duration-300" />
+                </div>
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="mb-2 block text-sm font-medium text-ink"
+                  >
+                    Email
+                  </label>
+                  <div className="relative group">
+                    <motion.div 
+                      className="absolute -inset-0.5 bg-gradient-to-r from-brand to-emerald-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"
+                    />
+                    <div className="relative">
+                      <FaEnvelope className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted group-hover:text-brand-300 transition-colors duration-300" />
                       <input
-                        type="tel"
-                        id="phoneNumber"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleInputChange}
-                        className="w-full pl-12 pr-4 py-4 bg-magazine-bg border-2 border-magazine-border rounded-2xl text-magazine-text placeholder-magazine-muted focus:border-accent-orange focus:outline-none transition-all duration-300 hover:border-accent-orange/50"
-                        placeholder="Enter your phone number"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-bold text-accent-yellow mb-3"
-                    >
-                      Email
-                    </label>
-                    <div className="relative group">
-                      <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-magazine-muted group-focus-within:text-accent-pink transition-colors duration-300" />
-                      <input
-                        type="email"
                         id="email"
                         name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
+                        type="email"
+                        value={form.email}
+                        onChange={onChange}
                         required
-                        className="w-full pl-12 pr-4 py-4 bg-magazine-bg border-2 border-magazine-border rounded-2xl text-magazine-text placeholder-magazine-muted focus:border-accent-pink focus:outline-none transition-all duration-300 hover:border-accent-pink/50"
-                        placeholder="Enter your email address"
+                        placeholder="you@example.com"
+                        className="input-field !pl-11 !border-line/50 group-hover:border-brand/30 transition-colors duration-300"
                       />
                     </div>
                   </div>
+                </div>
+              </div>
 
-                  {/* Subject */}
-                  <div>
-                    <label
-                      htmlFor="subject"
-                      className="block text-sm font-bold text-accent-yellow mb-3"
-                    >
-                      Subject
-                    </label>
+              <div>
+                <label
+                  htmlFor="subject"
+                  className="mb-2 block text-sm font-medium text-ink"
+                >
+                  Subject
+                </label>
+                <div className="relative group">
+                  <motion.div 
+                    className="absolute -inset-0.5 bg-gradient-to-r from-brand to-emerald-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"
+                  />
+                  <div className="relative">
                     <input
-                      type="text"
                       id="subject"
                       name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-4 bg-magazine-bg border-2 border-magazine-border rounded-2xl text-magazine-text placeholder-magazine-muted focus:border-accent-blue focus:outline-none transition-all duration-300 hover:border-accent-blue/50"
-                      placeholder="Enter subject"
+                      value={form.subject}
+                      onChange={onChange}
+                      placeholder="What's this about?"
+                      className="input-field !border-line/50 group-hover:border-brand/30 transition-colors duration-300"
+                      aria-label="Subject"
                     />
                   </div>
+                </div>
+              </div>
 
-                  {/* Message */}
-                  <div>
-                    <label
-                      htmlFor="message"
-                      className="block text-sm font-bold text-accent-yellow mb-3"
-                    >
-                      Your Message
-                    </label>
+              <div>
+                <label
+                  htmlFor="message"
+                  className="mb-2 block text-sm font-medium text-ink"
+                >
+                  Message
+                </label>
+                <div className="relative group">
+                  <motion.div 
+                    className="absolute -inset-0.5 bg-gradient-to-r from-brand to-emerald-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"
+                  />
+                  <div className="relative">
                     <textarea
                       id="message"
                       name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
+                      value={form.message}
+                      onChange={onChange}
                       required
-                      rows={6}
-                      className="w-full px-4 py-4 bg-magazine-bg border-2 border-magazine-border rounded-2xl text-magazine-text placeholder-magazine-muted focus:border-accent-purple focus:outline-none transition-all duration-300 resize-none hover:border-accent-purple/50"
-                      placeholder="Tell me about your project or just say hello..."
+                      rows={5}
+                      placeholder="Tell me about your project or just say hi…"
+                      className="input-field resize-none !border-line/50 group-hover:border-brand/30 transition-colors duration-300"
+                      aria-label="Message"
                     />
                   </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-accent-pink via-accent-purple to-accent-blue text-white font-black py-5 px-8 rounded-2xl hover:scale-105 transition-all duration-300 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg relative overflow-hidden group"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent-yellow via-accent-orange to-accent-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10 flex items-center gap-3">
-                      {isSubmitting ? (
-                        <>
-                          <FaSpinner className="animate-spin" />
-                          <span>SENDING MESSAGE...</span>
-                        </>
-                      ) : (
-                        <>
-                          <FaPaperPlane />
-                          <span>SEND MESSAGE</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Status Messages */}
-                  {submitStatus === "success" && (
-                    <div className="flex items-center gap-3 p-6 bg-accent-green/10 border-2 border-accent-green/30 rounded-2xl text-accent-green animate-slideUp">
-                      <FaCheckCircle size={24} />
-                      <div>
-                        <p className="font-bold">Message Sent Successfully!</p>
-                        <p className="text-sm opacity-80">
-                          Thank you! I'll get back to you within 24 hours.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {submitStatus === "error" && (
-                    <div className="flex items-center gap-3 p-6 bg-accent-red/10 border-2 border-accent-red/30 rounded-2xl text-accent-red animate-slideUp">
-                      <FaExclamationTriangle size={24} />
-                      <div>
-                        <p className="font-bold">Message Failed to Send</p>
-                        <p className="text-sm opacity-80">
-                          Please try again or contact me directly at{" "}
-                          {PERSONAL_INFO.email}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </form>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Enhanced Floating Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(40)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute rounded-full animate-float opacity-40 ${
-              i % 4 === 0
-                ? "w-2 h-2 bg-accent-yellow"
-                : i % 4 === 1
-                ? "w-1 h-1 bg-accent-pink"
-                : i % 4 === 2
-                ? "w-1.5 h-1.5 bg-accent-blue"
-                : "w-1 h-1 bg-accent-purple"
-            }`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 8}s`,
-              animationDuration: `${6 + Math.random() * 6}s`,
-            }}
-          />
-        ))}
+              <MagneticButton
+                as="button"
+                type="submit"
+                strength={0.3}
+                disabled={sending}
+                className="btn-primary w-full disabled:opacity-60 group relative overflow-hidden"
+              >
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                />
+                <span className="relative flex items-center justify-center gap-2">
+                  {sending ? (
+                    <>
+                      <FaSpinner className="animate-spin" /> Sending…
+                    </>
+                  ) : (
+                    <>
+                      <motion.div
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        <FaRocket className="text-sm" />
+                      </motion.div>
+                      Send Message
+                    </>
+                  )}
+                </span>
+              </MagneticButton>
+            </motion.form>
+          </Reveal>
+        </div>
+        
+        {/* Enhanced CTA */}
+        <motion.div 
+          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          <motion.div 
+            className="inline-flex items-center gap-3 text-2xl font-bold text-ink"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <motion.span
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <FaHeart className="text-brand-300" />
+            </motion.span>
+            Let's create something amazing together
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

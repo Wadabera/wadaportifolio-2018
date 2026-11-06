@@ -1,270 +1,338 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  FaHtml5, FaCss3Alt, FaJs, FaReact, FaNodeJs, FaPhp, 
-  FaPython, FaGitAlt, FaGithub, FaAward, FaCertificate
-} from 'react-icons/fa';
-import { 
-  SiTailwindcss, SiNestjs, SiExpress, SiMysql, 
-  SiTensorflow, SiNumpy, SiPandas, SiTypescript, SiMongodb,
-  SiAnaconda, SiJupyter, SiVisualstudiocode, SiPostman, SiDocker, SiFigma
-} from 'react-icons/si';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import {
+  FaHtml5,
+  FaCss3Alt,
+  FaJs,
+  FaReact,
+  FaNodeJs,
+  FaPhp,
+  FaPython,
+  FaGitAlt,
+  FaGithub,
+} from "react-icons/fa";
+import {
+  SiTailwindcss,
+  SiNestjs,
+  SiExpress,
+  SiMysql,
+  SiPostgresql,
+  SiTensorflow,
+  SiNumpy,
+  SiPandas,
+  SiTypescript,
+  SiMongodb,
+  SiJupyter,
+  SiVisualstudiocode,
+  SiPostman,
+  SiDocker,
+  SiFigma,
+} from "react-icons/si";
+import {
+  FaUsers,
+  FaComments,
+  FaLightbulb,
+  FaClock,
+  FaPuzzlePiece,
+  FaHandshake,
+  FaBrain,
+  FaChalkboardTeacher,
+} from "react-icons/fa";
+import Reveal from "./ui/Reveal";
+import TiltCard from "./ui/TiltCard";
+import SectionHeading from "./ui/SectionHeading";
+
+const CATEGORIES = [
+  {
+    title: "Frontend",
+    icon: <FaReact />,
+    color: "from-blue-500 to-cyan-500",
+    skills: [
+      { name: "HTML5", icon: <FaHtml5 />, level: 95, description: "Semantic markup & accessibility" },
+      { name: "CSS3", icon: <FaCss3Alt />, level: 90, description: "Modern styling & animations" },
+      { name: "JavaScript", icon: <FaJs />, level: 88, description: "ES6+ & DOM manipulation" },
+      { name: "TypeScript", icon: <SiTypescript />, level: 85, description: "Type-safe development" },
+      { name: "React.js", icon: <FaReact />, level: 85, description: "Component-based architecture" },
+      { name: "Tailwind CSS", icon: <SiTailwindcss />, level: 90, description: "Utility-first styling" },
+    ],
+  },
+  {
+    title: "Backend",
+    icon: <FaNodeJs />,
+    color: "from-green-500 to-emerald-500",
+    skills: [
+      { name: "PHP", icon: <FaPhp />, level: 88, description: "Server-side scripting" },
+      { name: "Node.js", icon: <FaNodeJs />, level: 85, description: "JavaScript runtime" },
+      { name: "Express.js", icon: <SiExpress />, level: 80, description: "Web framework" },
+      { name: "NestJS", icon: <SiNestjs />, level: 85, description: "Enterprise framework" },
+    ],
+  },
+  {
+    title: "Databases",
+    icon: <SiMysql />,
+    color: "from-orange-500 to-red-500",
+    skills: [
+      { name: "MySQL", icon: <SiMysql />, level: 82, description: "Relational database" },
+      { name: "PostgreSQL", icon: <SiPostgresql />, level: 80, description: "Advanced relational DB" },
+      { name: "MongoDB", icon: <SiMongodb />, level: 78, description: "NoSQL database" },
+    ],
+  },
+  {
+    title: "ML & Data",
+    icon: <FaPython />,
+    color: "from-purple-500 to-pink-500",
+    skills: [
+      { name: "Python", icon: <FaPython />, level: 85, description: "Data science & automation" },
+      { name: "TensorFlow", icon: <SiTensorflow />, level: 78, description: "Deep learning framework" },
+      { name: "NumPy", icon: <SiNumpy />, level: 80, description: "Numerical computing" },
+      { name: "Pandas", icon: <SiPandas />, level: 75, description: "Data manipulation" },
+      { name: "Jupyter", icon: <SiJupyter />, level: 80, description: "Interactive notebooks" },
+    ],
+  },
+  {
+    title: "Tools",
+    icon: <FaGitAlt />,
+    color: "from-yellow-500 to-orange-500",
+    skills: [
+      { name: "Git", icon: <FaGitAlt />, level: 85, description: "Version control" },
+      { name: "GitHub", icon: <FaGithub />, level: 88, description: "Collaboration platform" },
+      { name: "VS Code", icon: <SiVisualstudiocode />, level: 90, description: "Code editor" },
+      { name: "Postman", icon: <SiPostman />, level: 85, description: "API testing" },
+      { name: "Docker", icon: <SiDocker />, level: 70, description: "Containerization" },
+      { name: "Figma", icon: <SiFigma />, level: 75, description: "UI/UX design" },
+    ],
+  },
+];
+
+const SOFT_SKILLS = [
+  { name: "Teamwork", icon: <FaUsers /> },
+  { name: "Communication", icon: <FaComments /> },
+  { name: "Problem Solving", icon: <FaPuzzlePiece /> },
+  { name: "Critical Thinking", icon: <FaBrain /> },
+  { name: "Creativity", icon: <FaLightbulb /> },
+  { name: "Time Management", icon: <FaClock /> },
+  { name: "Adaptability", icon: <FaHandshake /> },
+  { name: "Leadership", icon: <FaChalkboardTeacher /> },
+];
+
+const SkillRow = ({ skill, visible, delay, onHover }) => (
+  <motion.div 
+    className="group cursor-pointer"
+    whileHover={{ scale: 1.02 }}
+    onHoverStart={() => onHover?.(skill)}
+    onHoverEnd={() => onHover?.(null)}
+  >
+    <div className="mb-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <motion.span 
+          className="text-xl text-brand-300"
+          whileHover={{ scale: 1.2, rotate: 5 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          {skill.icon}
+        </motion.span>
+        <div>
+          <span className="text-sm font-medium text-ink group-hover:text-brand-300 transition-colors duration-300">{skill.name}</span>
+          {skill.description && (
+            <motion.p 
+              className="text-xs text-muted mt-0.5"
+              initial={{ opacity: 0, height: 0 }}
+              whileHover={{ opacity: 1, height: 'auto' }}
+              transition={{ duration: 0.3 }}
+            >
+              {skill.description}
+            </motion.p>
+          )}
+        </div>
+      </div>
+      <motion.span 
+        className="text-xs font-bold text-muted group-hover:text-brand-300 transition-colors duration-300"
+        whileHover={{ scale: 1.1 }}
+      >
+        {skill.level}%
+      </motion.span>
+    </div>
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-line/60 group-hover:bg-line/80 transition-colors duration-300">
+      <motion.div
+        className="relative h-full rounded-full bg-gradient-to-r from-brand-500 to-emerald-400"
+        initial={{ width: 0 }}
+        animate={{ width: visible ? `${skill.level}%` : "0%" }}
+        transition={{ duration: 1.5, delay: parseFloat(delay) || 0, ease: "easeOut" }}
+        whileHover={{ 
+          background: "linear-gradient(to right, #10b981, #34d399)",
+          boxShadow: "0 0 20px rgba(16, 185, 129, 0.5)"
+        }}
+      >
+        <motion.span 
+          className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
+          animate={{ x: ['-100%', '100%'] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        />
+      </motion.div>
+    </div>
+  </motion.div>
+);
 
 const Skills = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [hoveredSkill, setHoveredSkill] = useState(null);
+  const ref = useRef(null);
   const sectionRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+  
+  const y = useTransform(scrollYProgress, [0, 1], [30, -30]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.3 }
+      ([entry]) => entry.isIntersecting && setVisible(true),
+      { threshold: 0.2 }
     );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
+    if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, []);
 
-  const skillCategories = [
-    {
-      title: 'Frontend Development',
-      icon: <FaReact />,
-      color: 'from-accent-blue to-accent-purple',
-      skills: [
-        { name: 'HTML5', icon: <FaHtml5 />, level: 95, color: 'text-orange-500' },
-        { name: 'CSS3', icon: <FaCss3Alt />, level: 90, color: 'text-blue-500' },
-        { name: 'JavaScript', icon: <FaJs />, level: 88, color: 'text-yellow-500' },
-        { name: 'TypeScript', icon: <SiTypescript />, level: 85, color: 'text-blue-600' },
-        { name: 'React.js', icon: <FaReact />, level: 85, color: 'text-cyan-500' },
-        { name: 'Tailwind CSS', icon: <SiTailwindcss />, level: 90, color: 'text-teal-500' }
-      ]
-    },
-    {
-      title: 'Backend Development',
-      icon: <FaNodeJs />,
-      color: 'from-accent-green to-accent-blue',
-      skills: [
-        { name: 'PHP', icon: <FaPhp />, level: 88, color: 'text-purple-600' },
-        { name: 'Node.js', icon: <FaNodeJs />, level: 85, color: 'text-green-600' },
-        { name: 'Express.js', icon: <SiExpress />, level: 80, color: 'text-gray-600' },
-        { name: 'NestJS', icon: <SiNestjs />, level: 85, color: 'text-red-600' },
-        { name: 'MySQL', icon: <SiMysql />, level: 82, color: 'text-blue-600' },
-        { name: 'MongoDB', icon: <SiMongodb />, level: 78, color: 'text-green-500' }
-      ]
-    },
-    {
-      title: 'Machine Learning & AI',
-      icon: <FaPython />,
-      color: 'from-accent-purple to-accent-pink',
-      skills: [
-        { name: 'Python', icon: <FaPython />, level: 85, color: 'text-blue-500' },
-        { name: 'TensorFlow', icon: <SiTensorflow />, level: 78, color: 'text-orange-600' },
-        { name: 'NumPy', icon: <SiNumpy />, level: 80, color: 'text-blue-400' },
-        { name: 'Pandas', icon: <SiPandas />, level: 75, color: 'text-purple-500' },
-        { name: 'Anaconda', icon: <SiAnaconda />, level: 82, color: 'text-green-500' },
-        { name: 'Jupyter', icon: <SiJupyter />, level: 80, color: 'text-orange-500' }
-      ]
-    },
-    {
-      title: 'Tools & Technologies',
-      icon: <FaGitAlt />,
-      color: 'from-accent-yellow to-accent-orange',
-      skills: [
-        { name: 'Git', icon: <FaGitAlt />, level: 85, color: 'text-orange-600' },
-        { name: 'GitHub', icon: <FaGithub />, level: 88, color: 'text-gray-800' },
-        { name: 'VS Code', icon: <SiVisualstudiocode />, level: 90, color: 'text-blue-600' },
-        { name: 'Postman', icon: <SiPostman />, level: 85, color: 'text-orange-500' },
-        { name: 'Docker', icon: <SiDocker />, level: 70, color: 'text-blue-500' },
-        { name: 'Figma', icon: <SiFigma />, level: 75, color: 'text-purple-600' }
-      ]
-    }
-  ];
-
-  const achievements = [
-    {
-      title: 'Academic Excellence',
-      description: 'Top 10% in Software Engineering Program',
-      icon: <FaAward />,
-      color: 'from-accent-yellow to-accent-orange'
-    },
-    {
-      title: 'Project Leadership',
-      description: 'Led 5+ successful team projects',
-      icon: <FaCertificate />,
-      color: 'from-accent-blue to-accent-purple'
-    },
-    {
-      title: 'Innovation Award',
-      description: 'Best ML Project - University Competition',
-      icon: <FaAward />,
-      color: 'from-accent-pink to-accent-red'
-    }
-  ];
-
   return (
-    <section ref={sectionRef} id="skills" className="section-padding bg-magazine-bg relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-accent-yellow/10 to-accent-orange/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-accent-pink/10 to-accent-purple/10 rounded-full blur-3xl"></div>
-        <div className="absolute inset-0 bg-hero-pattern opacity-5"></div>
-      </div>
+    <section id="skills" ref={sectionRef} className="section-padding relative overflow-hidden">
+      {/* Animated Background */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none"
+        style={{ y }}
+      >
+        <div className="absolute top-40 left-20 w-72 h-72 bg-brand/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-40 right-20 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+      </motion.div>
 
       <div className="container-custom relative z-10">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-accent-yellow/10 border border-accent-yellow/30 rounded-full px-4 py-2 text-accent-yellow text-sm font-medium backdrop-blur-sm mb-4">
-            <div className="w-2 h-2 bg-accent-yellow rounded-full animate-pulse"></div>
-            Technical Expertise
-          </div>
-          <h2 className="text-5xl lg:text-6xl font-black text-magazine-text mb-4 font-display">
-            My <span className="bg-gradient-to-r from-accent-yellow via-accent-orange to-accent-pink bg-clip-text text-transparent">Skills</span>
-          </h2>
-          <p className="text-xl text-magazine-muted max-w-3xl mx-auto leading-relaxed">
-            A comprehensive overview of my technical expertise across different domains
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Technical Expertise"
+          title="My"
+          highlight="Skills"
+          subtitle="A focused toolkit across frontend, backend, databases, machine learning, and the tools that tie them together."
+        />
 
-        {/* Skills Categories */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-16">
-          {skillCategories.map((category, categoryIndex) => (
-            <div 
-              key={categoryIndex} 
-              className="bg-magazine-card border border-magazine-border rounded-3xl p-8 hover:scale-105 transition-all duration-500 hover:shadow-2xl hover:border-accent-yellow/50 animate-fadeIn"
-              style={{ animationDelay: `${categoryIndex * 0.1}s` }}
-            >
-              {/* Category Header */}
-              <div className="flex items-center gap-4 mb-8">
-                <div className={`w-16 h-16 bg-gradient-to-r ${category.color} rounded-2xl flex items-center justify-center text-white text-2xl`}>
-                  {category.icon}
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-magazine-text font-heading">
-                    {category.title}
-                  </h3>
-                  <div className="w-12 h-1 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-full mt-2"></div>
-                </div>
-              </div>
-
-              {/* Skills List */}
-              <div className="space-y-6">
-                {category.skills.map((skill, skillIndex) => (
-                  <div key={skillIndex} className="skill-item group">
-                    {/* Skill Header */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <span className={`text-2xl ${skill.color} group-hover:scale-110 transition-transform duration-300`}>
-                          {skill.icon}
-                        </span>
-                        <span className="font-semibold text-magazine-text group-hover:text-accent-yellow transition-colors duration-300">
-                          {skill.name}
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-accent-yellow bg-accent-yellow/10 px-3 py-1 rounded-full">
-                        {skill.level}%
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="relative w-full bg-magazine-border/30 rounded-full h-3 overflow-hidden">
-                      <div 
-                        className={`h-full bg-gradient-to-r ${category.color} rounded-full transition-all duration-1000 ease-out relative overflow-hidden`}
-                        style={{ 
-                          width: isVisible ? `${skill.level}%` : '0%',
-                          transitionDelay: `${(categoryIndex * 0.1) + (skillIndex * 0.05)}s`
-                        }}
-                      >
-                        {/* Shimmer Effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-shimmer"></div>
-                      </div>
-                    </div>
+        <div ref={ref} className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {CATEGORIES.map((cat, ci) => (
+            <Reveal key={cat.title} delay={ci * 0.08}>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: ci * 0.1, duration: 0.6 }}
+              >
+                <TiltCard max={8} lift={8} className="glass group h-full p-7 border border-line/50 hover:border-brand/30 transition-all duration-500">
+                  <div className="mb-6 flex items-center gap-4">
+                    <motion.div 
+                      className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${cat.color} text-white shadow-lg`}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      {cat.icon}
+                    </motion.div>
+                    <h3 className="text-xl font-bold text-ink group-hover:text-brand-300 transition-colors duration-300">{cat.title}</h3>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className="space-y-5">
+                    {cat.skills.map((skill, si) => (
+                      <SkillRow
+                        key={skill.name}
+                        skill={skill}
+                        visible={visible}
+                        delay={`${ci * 0.1 + si * 0.05}s`}
+                        onHover={setHoveredSkill}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Hover effect overlay */}
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-br from-brand/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none"
+                  />
+                </TiltCard>
+              </motion.div>
+            </Reveal>
           ))}
         </div>
 
-        {/* Achievements Section */}
-        <div className="bg-magazine-card border border-magazine-border rounded-3xl p-8 lg:p-12 relative overflow-hidden mb-16">
-          <div className="absolute inset-0 bg-hero-pattern opacity-5"></div>
-          
-          <div className="relative z-10">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-magazine-text mb-4 font-heading">
-                Achievements & <span className="text-accent-yellow">Recognition</span>
-              </h3>
-              <p className="text-magazine-muted">
-                Milestones that showcase my dedication and expertise
-              </p>
+        {/* Enhanced Soft Skills */}
+        <Reveal delay={0.15}>
+          <motion.div 
+            className="mt-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="mb-8 flex items-center gap-4">
+              <motion.div 
+                className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand/20 to-emerald-500/20 text-brand-300"
+                whileHover={{ scale: 1.1, rotate: 10 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <FaHandshake />
+              </motion.div>
+              <h3 className="text-xl font-bold text-ink">Soft Skills</h3>
             </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {achievements.map((achievement, index) => (
-                <div 
-                  key={index} 
-                  className="text-center group animate-fadeIn hover:scale-105 transition-all duration-300"
-                  style={{ animationDelay: `${index * 0.2}s` }}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {SOFT_SKILLS.map((skill, index) => (
+                <motion.div
+                  key={skill.name}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05, duration: 0.5 }}
+                  whileHover={{ 
+                    y: -8, 
+                    scale: 1.05,
+                    boxShadow: "0 20px 40px rgba(16, 185, 129, 0.2)"
+                  }}
+                  className="glass group flex items-center gap-4 rounded-2xl p-5 border border-line/50 hover:border-brand/30 transition-all duration-300 cursor-pointer"
                 >
-                  <div className={`w-20 h-20 bg-gradient-to-r ${achievement.color} rounded-3xl flex items-center justify-center text-white text-2xl mx-auto mb-6 group-hover:rotate-12 transition-transform duration-300`}>
-                    {achievement.icon}
-                  </div>
-                  <h4 className="text-xl font-bold text-magazine-text mb-2 group-hover:text-accent-yellow transition-colors duration-300">
-                    {achievement.title}
-                  </h4>
-                  <p className="text-magazine-muted leading-relaxed">
-                    {achievement.description}
-                  </p>
-                </div>
+                  <motion.span 
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand/20 to-emerald-500/20 text-lg text-brand-300"
+                    whileHover={{ scale: 1.2, rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    {skill.icon}
+                  </motion.span>
+                  <span className="text-sm font-medium text-ink group-hover:text-brand-300 transition-colors duration-300">
+                    {skill.name}
+                  </span>
+                </motion.div>
               ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </Reveal>
 
-        {/* Stats Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { number: '15+', label: 'Projects Completed', color: 'text-accent-yellow' },
-            { number: '10+', label: 'Technologies Mastered', color: 'text-accent-orange' },
-            { number: '3+', label: 'Years Experience', color: 'text-accent-pink' },
-            { number: '95%', label: 'Success Rate', color: 'text-accent-blue' }
-          ].map((stat, index) => (
-            <div 
-              key={index} 
-              className="bg-magazine-card border border-magazine-border rounded-2xl p-6 text-center hover:scale-105 transition-all duration-300 hover:shadow-2xl group"
+        {/* Skill Detail Popup */}
+        <AnimatePresence>
+          {hoveredSkill && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed bottom-8 right-8 glass p-6 rounded-2xl border border-brand/30 shadow-2xl max-w-xs z-50"
             >
-              <div className={`text-4xl font-black ${stat.color} mb-2 group-hover:scale-110 transition-transform duration-300`}>
-                {stat.number}
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl text-brand-300">{hoveredSkill.icon}</span>
+                <h4 className="font-bold text-ink">{hoveredSkill.name}</h4>
               </div>
-              <div className="text-magazine-muted font-medium">
-                {stat.label}
+              {hoveredSkill.description && (
+                <p className="text-sm text-muted">{hoveredSkill.description}</p>
+              )}
+              <div className="mt-3 h-2 bg-line/60 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-brand to-emerald-400"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${hoveredSkill.level}%` }}
+                  transition={{ duration: 0.5 }}
+                />
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Floating Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute w-1 h-1 rounded-full animate-float opacity-30 ${
-              i % 3 === 0 ? 'bg-accent-yellow' : i % 3 === 1 ? 'bg-accent-pink' : 'bg-accent-blue'
-            }`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${4 + Math.random() * 4}s`
-            }}
-          />
-        ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );

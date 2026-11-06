@@ -1,338 +1,694 @@
-import React, { useState, useEffect } from "react";
-import wadapct from "../images/photo_WADA1.jpg";
+/* eslint-disable react/jsx-no-duplicate-props */
+import React, { useState, useEffect, useRef } from "react";
+import {
+  motion,
+  useMotionValue,
+  useMotionTemplate,
+  useSpring,
+  useTransform,
+  useScroll,
+  useTransform as useScrollTransform,
+} from "framer-motion";
 import {
   FaDownload,
   FaGithub,
   FaLinkedin,
   FaTelegram,
+  FaArrowRight,
+  FaEnvelope,
+  FaStar,
   FaCode,
-  FaBrain,
   FaRocket,
+  FaReact,
+  FaBrain,
 } from "react-icons/fa";
-import { PERSONAL_INFO } from "../utils/constants";
+import wadapct from "../images/mm.png";
+import { PERSONAL_INFO, SOCIAL_LINKS } from "../utils/constants";
+import useCountUp from "../hooks/useCountUp";
+import MagneticButton from "./ui/MagneticButton";
+
+const TITLES = [
+  "Software Engineering Student",
+  "Full-Stack Web Developer",
+  "Machine Learning Enthusiast",
+  "Problem Solver & Innovator",
+  "Digital Experience Creator",
+];
+
+const HERO_PARTICLES = Array.from({ length: 15 }, (_, index) => ({
+  left: `${(index * 37) % 100}%`,
+  top: `${(index * 53) % 100}%`,
+  size: 2 + (index % 3),
+  x: ((index * 17) % 101) - 50,
+  y: ((index * 29) % 101) - 50,
+  duration: 4 + (index % 5),
+}));
+
+const HeroStat = ({ end, suffix, label }) => {
+  const [ref, value] = useCountUp(end);
+  return (
+    <div ref={ref} className="text-center sm:text-left">
+      <div className="text-3xl font-extrabold text-brand-300">
+        {value}
+        {suffix}
+      </div>
+      <div className="text-sm text-muted">{label}</div>
+    </div>
+  );
+};
 
 const Hero = () => {
-  const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [text, setText] = useState("");
+  const [idx, setIdx] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const heroRef = useRef(null);
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const gridOffsetY = useTransform(pointerY, [0, 1], [0, 20]);
+  const gridTransform = useMotionTemplate`perspective(1000px) rotateX(60deg) translateY(${gridOffsetY}px)`;
+  const glowX = useTransform(pointerX, [0, 1], [-100, 100]);
+  const glowY = useTransform(pointerY, [0, 1], [-100, 100]);
 
+  // Typewriter with enhanced animation
   useEffect(() => {
-    const titles = [
-      "Software Engineering Student",
-      "Full-Stack Web Developer",
-      "Machine Learning Enthusiast",
-      "Problem Solver & Innovator",
-    ];
-
-    const currentTitle = titles[currentIndex];
+    const current = TITLES[idx];
     const timeout = setTimeout(
       () => {
-        if (!isDeleting) {
-          if (displayText.length < currentTitle.length) {
-            setDisplayText(currentTitle.slice(0, displayText.length + 1));
+        if (!deleting) {
+          if (text.length < current.length) {
+            setText(current.slice(0, text.length + 1));
           } else {
-            setTimeout(() => setIsDeleting(true), 2000);
+            setTimeout(() => setDeleting(true), 2000);
           }
         } else {
-          if (displayText.length > 0) {
-            setDisplayText(displayText.slice(0, -1));
-          } else {
-            setIsDeleting(false);
-            setCurrentIndex((prev) => (prev + 1) % titles.length);
+          if (text.length > 0) setText(text.slice(0, -1));
+          else {
+            setDeleting(false);
+            setIdx((p) => (p + 1) % TITLES.length);
           }
         }
       },
-      isDeleting ? 50 : 100
+      deleting ? 40 : 80
     );
-
     return () => clearTimeout(timeout);
-  }, [displayText, currentIndex, isDeleting]);
+  }, [text, idx, deleting]);
 
-  const scrollToAbout = () => {
-    document.getElementById("about").scrollIntoView({ behavior: "smooth" });
+  // Keep pointer effects on motion values so pointer movement never rerenders the hero.
+  useEffect(() => {
+    if (
+      !window.matchMedia("(pointer: fine)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return undefined;
+    }
+
+    const hero = heroRef.current;
+    if (!hero) return undefined;
+
+    const handlePointerMove = (event) => {
+      const rect = hero.getBoundingClientRect();
+      pointerX.set(Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)));
+      pointerY.set(Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)));
+    };
+
+    const resetPointer = () => {
+      pointerX.set(0);
+      pointerY.set(0);
+    };
+
+    hero.addEventListener("pointermove", handlePointerMove, { passive: true });
+    hero.addEventListener("pointerleave", resetPointer);
+    return () => {
+      hero.removeEventListener("pointermove", handlePointerMove);
+      hero.removeEventListener("pointerleave", resetPointer);
+    };
+  }, [pointerX, pointerY]);
+
+  // Scroll-based animations
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  
+  const opacity = useScrollTransform(scrollYProgress, [0, 1], [1, 0]);
+  const scale = useScrollTransform(scrollYProgress, [0, 1], [1, 0.8]);
+  const y = useScrollTransform(scrollYProgress, [0, 1], [0, 100]);
+
+  // Cursor parallax for the portrait with enhanced sensitivity
+  const portraitRef = useRef(null);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rx = useSpring(useTransform(my, [-0.5, 0.5], [15, -15]), {
+    stiffness: 200,
+    damping: 20,
+  });
+  const ry = useSpring(useTransform(mx, [-0.5, 0.5], [-15, 15]), {
+    stiffness: 200,
+    damping: 20,
+  });
+
+  const onPortraitMove = (e) => {
+    const r = portraitRef.current?.getBoundingClientRect();
+    if (!r) return;
+    mx.set((e.clientX - r.left) / r.width - 0.5);
+    my.set((e.clientY - r.top) / r.height - 0.5);
   };
+  const onPortraitLeave = () => {
+    mx.set(0);
+    my.set(0);
+  };
+
+  const scrollTo = (id) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   const downloadCV = () => {
-    try {
-      // Method 1: Try direct download with correct filename
-      const link = document.createElement("a");
-      link.href = `${process.env.PUBLIC_URL}/cv/Wada_Abera_CV_Two_Column (1).pdf`;
-      link.download = "Wada_Abera_CV_Two_Column.pdf";
-      link.target = "_blank";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      // Method 2: Fallback to window.open
-      console.log("Direct download failed, trying window.open");
-      window.open(
-        `${process.env.PUBLIC_URL}/cv/Wada_Abera_CV_Two_Column (1).pdf`,
-        "_blank"
-      );
-    }
+    const link = document.createElement("a");
+    link.href = `${process.env.PUBLIC_URL}/cv/Wada_Abera_Chala_CV_FullStack.pdf`;
+    link.download = "Wada_Abera_Chala_CV_FullStack.pdf";
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+
+  const socials = [
+    { icon: FaGithub, href: SOCIAL_LINKS.github, label: "GitHub" },
+    { icon: FaLinkedin, href: SOCIAL_LINKS.linkedin, label: "LinkedIn" },
+    { icon: FaTelegram, href: SOCIAL_LINKS.telegram, label: "Telegram" },
+  ];
 
   return (
     <section
       id="home"
-      className="min-h-screen bg-magazine-bg relative overflow-hidden"
+      ref={heroRef}
+      className="relative flex min-h-screen items-center overflow-hidden pt-24 pb-12 sm:pt-28 sm:pb-16"
+      style={{ opacity, scale, y }}
     >
-      {/* Animated Background */}
-      <div className="absolute inset-0">
-        {/* Gradient Orbs */}
-        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-accent-yellow/20 to-accent-orange/20 rounded-full blur-3xl animate-float"></div>
-        <div
-          className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-r from-accent-pink/20 to-accent-purple/20 rounded-full blur-3xl animate-float"
-          style={{ animationDelay: "2s" }}
-        ></div>
-        <div
-          className="absolute bottom-20 left-1/2 w-72 h-72 bg-gradient-to-r from-accent-blue/20 to-accent-green/20 rounded-full blur-3xl animate-float"
-          style={{ animationDelay: "4s" }}
-        ></div>
-
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-hero-pattern opacity-5"></div>
-
-        {/* Animated Lines */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-yellow/30 to-transparent animate-pulse"></div>
-          <div
-            className="absolute top-2/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-pink/30 to-transparent animate-pulse"
-            style={{ animationDelay: "1s" }}
-          ></div>
-          <div
-            className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent-blue/30 to-transparent animate-pulse"
-            style={{ animationDelay: "2s" }}
-          ></div>
-        </div>
-      </div>
-
-      <div className="container-custom relative z-10 min-h-screen flex items-center">
-        <div className="grid lg:grid-cols-2 gap-16 items-center w-full">
-          {/* Left Content */}
-          <div className="space-y-8 animate-slideLeft">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-accent-yellow/10 border border-accent-yellow/30 rounded-full px-4 py-2 text-accent-yellow text-sm font-medium backdrop-blur-sm">
-              <div className="w-2 h-2 bg-accent-yellow rounded-full animate-pulse"></div>
-              Available for opportunities
-            </div>
-
-            {/* Main Heading */}
-            <div className="space-y-4">
-              <h1 className="text-6xl lg:text-8xl font-black text-magazine-text leading-none">
-                <span className="block">I'M</span>
-                <span className="block bg-gradient-to-r from-accent-yellow via-accent-orange to-accent-pink bg-clip-text text-transparent animate-gradient bg-300% font-display">
-                  {PERSONAL_INFO.name.split(" ")[0]}
-                </span>
-                <span className="block text-accent-yellow font-display">
-                  {PERSONAL_INFO.name.split(" ")[1]}
-                </span>
-              </h1>
-            </div>
-
-            {/* Typewriter */}
-            <div className="h-16 flex items-center">
-              <div className="text-2xl lg:text-3xl font-bold text-magazine-muted">
-                <span className="typewriter text-accent-orange">
-                  {displayText}
-                </span>
-              </div>
-            </div>
-
-            {/* Description */}
-            <p className="text-lg text-magazine-muted leading-relaxed max-w-xl">
-              Creating{" "}
-              <span className="text-accent-yellow font-semibold">
-                innovative digital experiences
-              </span>{" "}
-              and exploring the frontiers of{" "}
-              <span className="text-accent-pink font-semibold">
-                machine learning
-              </span>
-              . Currently pursuing Software Engineering at Jimma University.
-            </p>
-
-            {/* Stats */}
-            <div className="flex gap-8">
-              <div className="text-center">
-                <div className="text-3xl font-black text-accent-yellow">
-                  15+
-                </div>
-                <div className="text-sm text-magazine-muted">Projects</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-accent-orange">3+</div>
-                <div className="text-sm text-magazine-muted">Years</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-accent-pink">10+</div>
-                <div className="text-sm text-magazine-muted">Technologies</div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={scrollToAbout}
-                className="group relative bg-gradient-to-r from-accent-yellow to-accent-orange text-magazine-bg font-bold py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <FaRocket className="group-hover:animate-bounce" />
-                  Let's Create Something Amazing
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-accent-orange to-accent-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
-
-              <button
-                className="group border-2 border-accent-yellow text-accent-yellow font-bold py-4 px-8 rounded-2xl transition-all duration-300 hover:bg-accent-yellow hover:text-magazine-bg"
-                onClick={downloadCV}
-              >
-                <span className="flex items-center gap-2">
-                  <FaDownload className="group-hover:animate-bounce" />
-                  Download CV
-                </span>
-              </button>
-            </div>
-
-            {/* Social Links */}
-            <div className="flex gap-4">
-              {[
-                {
-                  icon: FaGithub,
-                  color: "hover:bg-accent-yellow",
-                  href: "https://github.com/Wadabera",
-                },
-                {
-                  icon: FaLinkedin,
-                  color: "hover:bg-accent-blue",
-                  href: "https://www.linkedin.com/in/wada-abera",
-                },
-                {
-                  icon: FaTelegram,
-                  color: "hover:bg-accent-pink",
-                  href: "https://t.me/promisepact",
-                },
-              ].map((social, index) => (
-                <a
-                  key={index}
-                  href={social.href}
-                  className={`w-14 h-14 bg-magazine-card border border-magazine-border rounded-xl flex items-center justify-center text-magazine-muted ${social.color} hover:text-magazine-bg transition-all duration-300 hover:scale-110 hover:rotate-12 hover:shadow-lg`}
-                >
-                  <social.icon size={20} />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Content - Interactive Profile */}
-          <div className="flex justify-center lg:justify-end animate-slideRight">
-            <div className="relative group">
-              {/* Main Profile Container */}
-              <div className="relative w-96 h-96 lg:w-[450px] lg:h-[450px]">
-                {/* Rotating Border */}
-                <div className="absolute inset-0 bg-gradient-to-r from-accent-yellow via-accent-orange via-accent-pink to-accent-purple rounded-full animate-spin-slow p-1">
-                  <div className="w-full h-full bg-magazine-bg rounded-full"></div>
-                </div>
-
-                {/* Profile Image - Optimized for Circular Image */}
-                <div className="absolute inset-4 rounded-full overflow-hidden border-4 border-magazine-card group-hover:scale-105 transition-transform duration-500 bg-gradient-to-br from-accent-purple via-accent-blue to-accent-pink">
-                  <img
-                    src={wadapct}
-                    alt="Wada Abera - Fullstack Developer"
-                    className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
-                    style={{
-                      filter: "brightness(1.1) contrast(1.1) saturate(1.2)",
-                      objectPosition: "center center",
-                    }}
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-magazine-bg/10 to-transparent"></div>
-                </div>
-
-                {/* Floating Tech Badges */}
-                <div className="absolute -top-6 -right-6 bg-gradient-to-r from-accent-yellow to-accent-orange rounded-2xl p-4 shadow-2xl animate-float">
-                  <FaCode size={24} className="text-magazine-bg" />
-                </div>
-
-                <div
-                  className="absolute -bottom-6 -left-6 bg-gradient-to-r from-accent-pink to-accent-purple rounded-2xl p-4 shadow-2xl animate-float"
-                  style={{ animationDelay: "1s" }}
-                >
-                  <FaBrain size={24} className="text-white" />
-                </div>
-
-                <div
-                  className="absolute top-1/2 -right-8 bg-gradient-to-r from-accent-blue to-accent-green rounded-xl p-3 shadow-2xl animate-float"
-                  style={{ animationDelay: "2s" }}
-                >
-                  <FaRocket size={20} className="text-white" />
-                </div>
-
-                {/* Skill Indicators */}
-                <div className="absolute top-8 left-8 space-y-2">
-                  {["React", "Node.js", "Python"].map((skill, index) => (
-                    <div
-                      key={skill}
-                      className="bg-magazine-card/80 backdrop-blur-sm border border-magazine-border rounded-lg px-3 py-1 text-xs text-accent-yellow font-medium animate-slideLeft"
-                      style={{ animationDelay: `${index * 0.2}s` }}
-                    >
-                      {skill}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Decorative Particles */}
-                {[...Array(8)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute w-2 h-2 bg-accent-yellow rounded-full animate-pulse opacity-60"
-                    style={{
-                      left: `${20 + Math.random() * 60}%`,
-                      top: `${20 + Math.random() * 60}%`,
-                      animationDelay: `${Math.random() * 2}s`,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <button
-            onClick={scrollToAbout}
-            className="flex flex-col items-center gap-2 text-magazine-muted hover:text-accent-yellow transition-colors duration-300 group"
-          >
-            <span className="text-sm font-medium">Explore More</span>
-            <div className="w-6 h-10 border-2 border-magazine-border group-hover:border-accent-yellow rounded-full flex justify-center transition-colors duration-300">
-              <div className="w-1 h-3 bg-accent-yellow rounded-full mt-2 animate-pulse"></div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Floating Particles */}
+      {/* Enhanced Cinematic Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(30)].map((_, i) => (
-          <div
+        {/* Interactive Grid Background */}
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(16, 185, 129, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+            transform: gridTransform,
+            transition: 'transform 0.3s ease-out'
+          }}
+        />
+        
+        {/* Enhanced Floating Particles with Mouse Interaction */}
+        {HERO_PARTICLES.map((particle, i) => (
+          <motion.div
             key={i}
-            className={`absolute w-1 h-1 rounded-full animate-float opacity-40 ${
-              i % 3 === 0
-                ? "bg-accent-yellow"
-                : i % 3 === 1
-                ? "bg-accent-pink"
-                : "bg-accent-blue"
-            }`}
+            className="particle absolute rounded-full bg-gradient-to-r from-brand to-emerald-400 hidden sm:block"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${4 + Math.random() * 4}s`,
+              left: particle.left,
+              top: particle.top,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+            }}
+            animate={{
+              x: [0, particle.x],
+              y: [0, particle.y],
+              opacity: [0.2, 0.8, 0.2],
+            }}
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
+              ease: "easeInOut"
             }}
           />
         ))}
+        
+        {/* Cinematic Gradient Orbs with Enhanced Animation */}
+        <motion.div 
+          className="absolute top-20 left-10 w-96 h-96 bg-brand/30 rounded-full blur-3xl"
+          animate={{
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-20 right-10 w-80 h-80 bg-emerald-400/30 rounded-full blur-3xl"
+          animate={{
+            x: [0, -40, 0],
+            y: [0, -20, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute top-1/2 left-1/2 w-72 h-72 bg-teal-400/25 rounded-full blur-3xl"
+          animate={{
+            x: [0, 30, -30, 0],
+            y: [0, -30, 30, 0],
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        {/* Mouse-following Glow Effect */}
+        <motion.div
+          className="absolute w-96 h-96 bg-brand/20 rounded-full blur-3xl pointer-events-none"
+          style={{ x: glowX, y: glowY }}
+        />
       </div>
+      
+      <div className="container-custom relative z-10">
+        <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-8 sm:gap-12">
+          {/* Left - Enhanced Content */}
+          <motion.div
+            className="space-y-8 lg:col-span-7"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* Enhanced Availability Badge */}
+            <motion.div 
+              className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full glass-3d border border-brand/30"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              whileHover={{ scale: 1.05, borderColor: 'rgba(16, 185, 129, 0.6)' }}
+            >
+              <motion.span 
+                className="h-3 w-3 rounded-full bg-brand"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [1, 0.8, 1]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <span className="text-sm font-semibold text-brand-300">
+                Available for internships & opportunities
+              </span>
+            </motion.div>
+
+            {/* Enhanced Hero Heading */}
+            <motion.h1
+              className="text-4xl font-extrabold leading-[1.1] text-ink sm:text-5xl lg:text-7xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              Hi, I'm{" "}
+              <motion.span 
+                className="gradient-text animate-text-glow relative inline-block"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                {PERSONAL_INFO.name.split(" ")[0]}
+                <motion.span 
+                  className="absolute -inset-1 bg-gradient-to-r from-brand/30 to-emerald-400/30 blur-xl -z-10"
+                  animate={{ 
+                    opacity: [0.5, 0.8, 0.5],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+              </motion.span>{" "}
+              {PERSONAL_INFO.name.split(" ")[1]}
+            </motion.h1>
+
+            {/* Enhanced Typewriter Effect */}
+            <motion.div
+              className="flex h-10 items-center text-lg font-semibold text-muted sm:text-xl lg:text-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+            >
+              <span className="type-caret text-brand-300">{text}</span>
+              <motion.span 
+                className="ml-1 w-0.5 h-6 bg-brand"
+                animate={{ opacity: [1, 0] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              />
+            </motion.div>
+
+            {/* Enhanced Description */}
+            <motion.p
+              className="max-w-xl text-base leading-relaxed text-muted text-balance sm:text-lg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+            >
+              I craft{" "}
+              <motion.span 
+                className="font-semibold text-brand-300 inline-block"
+                whileHover={{ y: -2 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                fast, elegant web applications
+              </motion.span>{" "}
+              and explore{" "}
+              <motion.span 
+                className="font-semibold text-brand-300 inline-block"
+                whileHover={{ y: -2 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                machine learning
+              </motion.span>
+              . Currently a {PERSONAL_INFO.year} Software Engineering student at{" "}
+              {PERSONAL_INFO.university}.
+            </motion.p>
+
+            {/* Enhanced CTAs */}
+            <motion.div
+              className="flex flex-wrap gap-3 sm:gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+            >
+              <MagneticButton
+                onClick={() => scrollTo("projects")}
+                className="btn-primary group relative overflow-hidden flex-1 sm:flex-none"
+              >
+                <motion.span 
+                  className="relative z-10 flex items-center gap-2"
+                  whileHover={{ x: 2 }}
+                >
+                  View Projects
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <FaArrowRight className="text-sm" />
+                  </motion.div>
+                </motion.span>
+                <motion.span 
+                  className="absolute inset-0 bg-gradient-to-r from-brand-600 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  initial={false}
+                  animate={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                />
+              </MagneticButton>
+              
+              <MagneticButton
+                onClick={downloadCV}
+                className="btn-ghost glass-3d hover:shadow-emerald group flex-1 sm:flex-none"
+              >
+                <motion.div 
+                  className="flex items-center gap-2"
+                  whileHover={{ x: 2 }}
+                >
+                  <FaDownload className="text-sm" />
+                  Download CV
+                </motion.div>
+              </MagneticButton>
+              
+              <MagneticButton
+                onClick={() => scrollTo("contact")}
+                className="btn-ghost glass-3d hover:shadow-emerald group flex-1 sm:flex-none"
+              >
+                <motion.div 
+                  className="flex items-center gap-2"
+                  whileHover={{ x: 2 }}
+                >
+                  <FaEnvelope className="text-sm" />
+                  Contact Me
+                </motion.div>
+              </MagneticButton>
+            </motion.div>
+
+            {/* Enhanced Stats with Animated Counters */}
+            <motion.div
+              className="flex flex-wrap gap-6 sm:gap-10 pt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
+            >
+              <motion.div 
+                className="text-center sm:text-left"
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <HeroStat end={15} suffix="+" label="Projects" />
+              </motion.div>
+              <motion.div 
+                className="text-center sm:text-left"
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <HeroStat end={3} suffix="+" label="Years Coding" />
+              </motion.div>
+              <motion.div 
+                className="text-center sm:text-left"
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <HeroStat end={12} suffix="+" label="Technologies" />
+              </motion.div>
+            </motion.div>
+
+            {/* Enhanced Socials with Premium Effects */}
+            <motion.div 
+              className="flex gap-4 pt-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.6 }}
+            >
+              {socials.map((s, index) => (
+                <motion.a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 + index * 0.1, duration: 0.5 }}
+                  whileHover={{
+                    y: -10,
+                    rotate: index % 2 === 0 ? -8 : 8,
+                    scale: 1.15,
+                    boxShadow: "0 20px 40px rgba(16, 185, 129, 0.3)",
+                    transition: { type: "spring", stiffness: 400, damping: 15 }
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl glass-3d text-muted hover:text-brand-300 shadow-soft hover:shadow-emerald relative overflow-hidden group"
+                >
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-br from-brand/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    animate={{ 
+                      background: [
+                        "linear-gradient(to bottom right, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2))",
+                        "linear-gradient(to top left, rgba(16, 185, 129, 0.4), rgba(52, 211, 153, 0.4))",
+                        "linear-gradient(to bottom right, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2))"
+                      ]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                  <s.icon size={20} className="relative z-10" />
+                </motion.a>
+              ))}
+            </motion.div>
+          </motion.div>
+
+          {/* Right — Enhanced Portrait */}
+          <motion.div
+            className="flex justify-center lg:col-span-5 lg:justify-end order-first lg:order-last"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+          >
+            <motion.div
+              ref={portraitRef}
+              onMouseMove={onPortraitMove}
+              onMouseLeave={onPortraitLeave}
+              style={{ rotateX: rx, rotateY: ry, transformPerspective: 1200 }}
+              className="relative h-56 w-56 sm:h-72 sm:w-72 lg:h-[28rem] lg:w-[28rem] perspective-container"
+            >
+              {/* Enhanced Pulsing Outer Glow Ring */}
+              <motion.div 
+                className="absolute -inset-6 rounded-full bg-gradient-to-r from-brand via-emerald-400 to-teal-400 blur-3xl"
+                animate={{ 
+                  opacity: [0.4, 0.7, 0.4],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+              />
+              
+              {/* Enhanced rotating ring with neon effect */}
+              <motion.div 
+                className="absolute inset-0 rounded-full bg-gradient-to-tr from-brand-500 via-brand-400 to-emerald-300 p-[4px]"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <div className="h-full w-full rounded-full bg-bg" />
+              </motion.div>
+              
+              {/* Secondary rotating ring */}
+              <motion.div 
+                className="absolute inset-4 rounded-full bg-gradient-to-bl from-teal-400 via-emerald-500 to-brand-500 p-[2px]"
+                animate={{ rotate: -360 }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              >
+                <div className="h-full w-full rounded-full bg-bg" />
+              </motion.div>
+              
+              {/* Enhanced morphing glow */}
+              <motion.div 
+                className="absolute inset-3 rounded-full bg-brand/40 blur-3xl"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.5, 0.3]
+                }}
+                transition={{ duration: 5, repeat: Infinity }}
+              />
+              
+              {/* Enhanced 3D image container */}
+              <motion.div 
+                className="absolute inset-6 overflow-hidden rounded-full border-2 border-brand/50 shadow-emerald-lg"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <img
+                  src={wadapct}
+                  alt="Wada Abera, Full-Stack Developer"
+                  width={448}
+                  height={448}
+                  loading="eager"
+                  decoding="async"
+                  fetchpriority="high"
+                  className="h-full w-full object-cover"
+                />
+                {/* Enhanced shine effect overlay */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent"
+                  animate={{ 
+                    x: ['-100%', '100%']
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-brand/20 via-transparent to-transparent" />
+              </motion.div>
+              
+              {/* Enhanced floating tech chips with 3D effect */}
+              <motion.div
+                className="absolute -right-4 top-12 tech-chip !px-4 !py-2.5 shadow-emerald glass-3d card-shine flex items-center gap-2"
+                animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+                transition={{ duration: 4, repeat: Infinity }}
+                whileHover={{ scale: 1.15, rotate: 10 }}
+              >
+                <FaReact className="text-brand-300" />
+                React
+              </motion.div>
+              
+              <motion.div
+                className="absolute -left-4 bottom-20 tech-chip !px-4 !py-2.5 shadow-emerald glass-3d card-shine flex items-center gap-2"
+                animate={{ y: [0, 15, 0], rotate: [0, -5, 0] }}
+                transition={{ duration: 5, repeat: Infinity }}
+                whileHover={{ scale: 1.15, rotate: -10 }}
+              >
+                <FaCode className="text-emerald-300" />
+                NestJS
+              </motion.div>
+              
+              <motion.div
+                className="absolute bottom-4 right-16 tech-chip !px-4 !py-2.5 shadow-emerald glass-3d card-shine flex items-center gap-2"
+                animate={{ y: [0, -12, 0], rotate: [0, 3, 0] }}
+                transition={{ duration: 4.5, repeat: Infinity }}
+                whileHover={{ scale: 1.15, rotate: 8 }}
+              >
+                <FaRocket className="text-teal-300" />
+                Python
+              </motion.div>
+              
+              {/* Additional enhanced floating tech badges */}
+              <motion.div
+                className="absolute top-1/4 -left-12 tech-chip !px-3 !py-2 shadow-emerald glass-3d flex items-center gap-2"
+                animate={{ 
+                  y: [0, -18, 0],
+                  rotate: [0, 12, 0],
+                  scale: [1, 1.05, 1]
+                }}
+                transition={{ duration: 6, repeat: Infinity }}
+                whileHover={{ scale: 1.2 }}
+              >
+                <FaBrain className="text-brand-300" />
+                AI/ML
+              </motion.div>
+              
+              <motion.div
+                className="absolute top-1/3 -right-10 tech-chip !px-3 !py-2 shadow-emerald glass-3d flex items-center gap-2"
+                animate={{ 
+                  y: [0, 14, 0],
+                  rotate: [0, -10, 0],
+                  scale: [1, 1.05, 1]
+                }}
+                transition={{ duration: 5.5, repeat: Infinity }}
+                whileHover={{ scale: 1.2 }}
+              >
+                <FaStar className="text-emerald-300" />
+                TypeScript
+              </motion.div>
+              
+              {/* New floating badge */}
+              <motion.div
+                className="absolute bottom-16 -left-8 tech-chip !px-3 !py-2 shadow-emerald glass-3d flex items-center gap-2"
+                animate={{ 
+                  y: [0, -10, 0],
+                  rotate: [0, -8, 0],
+                  x: [0, 5, 0]
+                }}
+                transition={{ duration: 7, repeat: Infinity }}
+                whileHover={{ scale: 1.2 }}
+              >
+                <FaRocket className="text-teal-300" />
+                Full-Stack
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Enhanced scroll indicator */}
+      <motion.button
+        onClick={() => scrollTo("about")}
+        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 text-muted transition-colors hover:text-brand-300 sm:flex group"
+        aria-label="Scroll to about"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.6 }}
+        whileHover={{ y: -5 }}
+      >
+        <motion.span 
+          className="text-xs font-medium tracking-[0.3em] uppercase"
+          animate={{ opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          Scroll to explore
+        </motion.span>
+        <motion.span 
+          className="flex h-12 w-7 justify-center rounded-full border-2 border-line/50 group-hover:border-brand/50 transition-colors pt-2"
+          whileHover={{ scale: 1.1 }}
+        >
+          <motion.span
+            className="h-2 w-1.5 rounded-full bg-gradient-to-b from-brand to-emerald-400"
+            animate={{ y: [0, 16, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </motion.span>
+      </motion.button>
     </section>
   );
 };
